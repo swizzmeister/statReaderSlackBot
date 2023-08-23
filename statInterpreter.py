@@ -66,30 +66,30 @@ class StatInterpreter:
                 quickSort(array, pi + 1, high)
         quickSort(pList,0,len(pList)-1)
         return pList
-    def print_LeaderBoard(self,stats = []):
+    def print_LeaderBoard(self,stat):
         print("running")
        # activePlayerNames = {}
        # activePlayerStats = []
-        test=()
-        for stat in stats:
-            for curPlayer in self.players:
-                curStat = curPlayer[stat]
-                if curStat == "-":
-                    continue
-                elif "-" in curStat:
-                    tStat = curStat.split('-')
-                    avg = (float(tStat[0])+float(tStat[1]))/2
+        test= []
+        for curPlayer in self.players.items():
+            curStat = curPlayer[1][stat]
+            curName = curPlayer[1]["Name"]
+            if curStat == "-":
+                continue
+            elif "-" in curStat:
+                tStat = curStat.split('-')
+                avg = (float(tStat[0])+float(tStat[1]))/2
                   #  activePlayerNames[avg] = curPlayer['Name']
                    # activePlayerStats.append(avg)
-                    test.append(curPlayer[1],avg)
-                else:
+                test.append(curName,avg)
+            else:
                    # activePlayerNames[curPlayer[stat]] = curPlayer['Name']
                     #activePlayerStats.append(curPlayer[stat])
-                    test.append(curPlayer[1], avg)
+                test.append(curPlayer[1][1], float(curStat))
        # activePlayerStats.sort()
-        sortedLeaderboard = self.sortLeaderboard(test)
-        pretty_print = "Current Leaderboard:\n"
-        print(sortedLeaderboard)
+                sortedLeaderboard = self.sortLeaderboard(test)
+                pretty_print = "Current Leaderboard:\n"
+                print(sortedLeaderboard)
 
 
 
