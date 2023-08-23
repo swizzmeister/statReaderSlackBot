@@ -4,9 +4,9 @@ import csv
 class StatInterpreter:
     def __init__(self, path):
         self.players = {}
+        self.cata = []
         with open(path) as csv_file:
             lin = 0
-            var = []
             csv_reader = csv.reader(csv_file, delimiter=',')
             for line in csv_reader:
                 print(line)
@@ -14,19 +14,21 @@ class StatInterpreter:
                     self.players[line[0]] = {}
                     i = 0
                     for l in line:
-                        self.players[line[0]][var[i]] = l
+                        self.players[line[0]][ self.cata[i]] = l
                         i += 1
                 else:
-                    var.append("Num")
+                    self.cata.append("Num")
                     print(len(line))
                     for cat in line:
                         if cat:
                             print(cat)
-                            var.append(cat)
+                            self.cata.append(cat)
                 lin += 1
 
     def print(self):
         print(self.players)
+    def getCatagories(self):
+        return self.cata
     def sortLeaderboard(self, pList): #((Name,Stat),(Name,Stat)...etc)
         def partition(array, low, high):
 
@@ -39,7 +41,7 @@ class StatInterpreter:
             # traverse through all elements
             # compare each element with pivot
             for j in range(low, high):
-                if array[j][1] <= pivot:
+                if array[j][1] >= pivot:
                     # If element smaller than pivot is found
                     # swap it with the greater element pointed by i
                     i = i + 1
@@ -74,22 +76,36 @@ class StatInterpreter:
         for curPlayer in self.players.items():
             curStat = curPlayer[1][stat]
             curName = curPlayer[1]["Name"]
-            if curStat == "-":
+            print(curStat)
+            if curStat == "-" or curName == 'Opponent':
+                print(curName)
                 continue
             elif "-" in curStat:
                 tStat = curStat.split('-')
+                print(tStat)
                 avg = (float(tStat[0])+float(tStat[1]))/2
-                  #  activePlayerNames[avg] = curPlayer['Name']
-                   # activePlayerStats.append(avg)
-                test.append(curName,avg)
+                test.append((curName,round(avg,2)))
             else:
-                   # activePlayerNames[curPlayer[stat]] = curPlayer['Name']
-                    #activePlayerStats.append(curPlayer[stat])
-                test.append(curPlayer[1][1], float(curStat))
+                test.append((curName, float(curStat)))
+                print(curName)
        # activePlayerStats.sort()
-                sortedLeaderboard = self.sortLeaderboard(test)
-                pretty_print = "Current Leaderboard:\n"
-                print(sortedLeaderboard)
+        print(test)
+        sortedLeaderboard = self.sortLeaderboard(test)
+        pretty_print = "*   Ranked " + stat + "*:\n"
+        print(sortedLeaderboard)
+        i =1
+        max=0
+        for player in sortedLeaderboard:
+            if len(player[0]) > max: max = len(player[0])
+        max += 4
+        print(max)
+        for player in sortedLeaderboard:
+            space = ""
+            space = ' ' * (max - len(player[0]))
+            pretty_print += (">" + str(int(i)) + ". " + player[0] + space + str(player[1]) + " " + stat + "\n")
+            i+=1
+        print(pretty_print)
+        return pretty_print
 
 
 
@@ -97,4 +113,4 @@ class StatInterpreter:
 
 interpret = StatInterpreter("upei_lineups.csv")
 interpret.print()
-interpret.print_LeaderBoard("min/g")
+interpret.print_LeaderBoard("fg/g")
