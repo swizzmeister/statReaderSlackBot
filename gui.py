@@ -4,36 +4,6 @@ from tkinter import Menu
 from tkinter import filedialog
 from tkinter import ttk
 import statInterpreter
-class dataDisplayTree():
-
-    def __init__(self, leaderBoard, stat):
-
-        self.data_win = Tk()
-        self.data_win.geometry('600x600')
-        self.data_win.title(stat + ' Leaderboard')
-        self.tv_data = ttk.Treeview(self.data_win)
-        self.tv_data.pack(fill=tk.BOTH, expand=True)
-        self.stat = stat
-        self.c_names = 'name', 'stat'
-        self.tv_data.configure(columns=self.c_names)
-        self.tv_data.heading('name', text='Name')
-        self.tv_data.heading('#0', text='Rank')
-        self.tv_data.heading('stat', text=stat)
-        i=1
-        for player in leaderBoard:
-            self.tv_data.insert(parent="",
-                                index=tk.END,
-                                text=i,
-                                values=(player[0], player[1]))
-            i+=1
-        self.data_win.mainloop()
-activeLeaderboardFile
-window = Tk()
-window.geometry('620x200')
-label_file_explorer = Label(window,
-                            text="File Explorer using Tkinter",
-                            width=100, height=4,
-                            fg="blue")
 
 
 def browseFiles():
