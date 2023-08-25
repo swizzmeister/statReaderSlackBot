@@ -2,8 +2,13 @@ import slack
 import os
 import sys
 import statInterpreter
+class SlackBot:
+    def __init__(self):
+        client = slack.WebClient(token='xoxb-5090655667488-5801495975025-5RfUPOf2ODcEZULUy10BGOMv')
 
-client = slack.WebClient(token='xoxb-5090655667488-5801495975025-WOfYgxv0IAWTfrrvqRUakJ17')
+    def send_msg(self, channel, msg):
+        client.chat_postMessage(channel=channel, text=msg)
+
 if len(sys.argv) < 2:
     interpret = statInterpreter.StatInterpreter("upei_lineups.csv")
     catagories = interpret.getCatagories()
