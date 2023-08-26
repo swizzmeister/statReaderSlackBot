@@ -37,7 +37,7 @@ class StatInterpreter:
     def getCatagories(self):
         return self.cata
 
-    def sortLeaderboard(self, pList):  # ((Name,Stat),(Name,Stat)...etc)
+    def sortLeaderboard(self, pList, ltg):  # ((Name,Stat),(Name,Stat)...etc)
         def partition(array, low, high):
 
             # choose the rightmost element as pivot
@@ -49,13 +49,14 @@ class StatInterpreter:
             # traverse through all elements
             # compare each element with pivot
             for j in range(low, high):
-                if array[j][1] >= pivot:
-                    # If element smaller than pivot is found
-                    # swap it with the greater element pointed by i
-                    i = i + 1
-
-                    # Swapping element at i with element at j
-                    (array[i], array[j]) = (array[j], array[i])
+                if ltg:
+                    if array[j][1] >= pivot:
+                        i = i + 1
+                        (array[i], array[j]) = (array[j], array[i])
+                else:
+                    if array[j][1] <= pivot:
+                        i = i + 1
+                        (array[i], array[j]) = (array[j], array[i])
 
             # Swap the pivot element with the greater element specified by i
             (array[i + 1], array[high]) = (array[high], array[i + 1])
@@ -79,7 +80,7 @@ class StatInterpreter:
         quickSort(pList, 0, len(pList) - 1)
         return pList
 
-    def get_Sorted_Leaderboard(self, stat):
+    def get_Sorted_Leaderboard(self, stat, ltg):
         test = []
         for curPlayer in self.players.items():
             curStat = curPlayer[1][stat]
@@ -97,12 +98,12 @@ class StatInterpreter:
                 test.append((curName, float(curStat)))
                 print(curName)
         print(test)
-        sortedList = self.sortLeaderboard(test)
+        sortedList = self.sortLeaderboard(test, ltg)
         return sortedList
 
-    def print_LeaderBoard(self, stat):
-        sortedLeaderboard = self.get_Sorted_Leaderboard(stat)
-        pretty_print = "*   Ranked " + stat + " " + str(datetime.date.today()) + "*:\n"
+    def print_LeaderBoard(self, stat,ltg):
+        sortedLeaderboard = self.get_Sorted_Leaderboard(stat, ltg)
+        pretty_print = "*   Ranked Average " + stat + " " + str(datetime.date.today()) + "*:\n"
         print(sortedLeaderboard)
         i = 1
         max = 0
@@ -113,7 +114,7 @@ class StatInterpreter:
         for player in sortedLeaderboard:
             space = ""
             space = ' ' * (max - len(player[0]))
-            pretty_print += (">" + str(int(i)) + ". " + player[0] + space + str(player[1]) + " " + stat + "\n")
+            pretty_print += (">" + str(int(i)) + ". " + player[0] + space + str(player[1]) + "inch\n")
             i += 1
         return pretty_print
 
