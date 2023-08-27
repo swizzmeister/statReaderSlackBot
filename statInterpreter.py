@@ -114,7 +114,7 @@ class StatInterpreter:
         for player in sortedLeaderboard:
             space = ""
             space = ' ' * (max - len(player[0]))
-            pretty_print += (">" + str(int(i)) + ". " + player[0] + space + str(player[1]) + "inch\n")
+            pretty_print += (">" + str(int(i)) + ". " + player[0] + space + str(player[1]) + "sec\n")
             i += 1
         return pretty_print
 

@@ -34,7 +34,7 @@ def dataDisplayTree(leaderBoard, stat):
     tv_data.heading('#0', text='Rank')
     tv_data.heading('stat', text=stat)
     i=1
-    print(leaderBoard)
+    print(leaderBoard.print_LeaderBoard(stat, True))
     for player in leaderBoard:
         tv_data.insert(parent="",
                    index=tk.END,
@@ -139,11 +139,12 @@ class Page1(tk.Frame):
 
 # third window frame page2
 class Page2(tk.Frame):
+    reader
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
         label = ttk.Label(self, text="Page 2", font=LARGEFONT)
         label.grid(row=0, column=0, padx=10, pady=10)
-        cata = []
+
         # button to show frame 2 with text
         # layout2
         button1 = ttk.Button(self, text="Page 1",
