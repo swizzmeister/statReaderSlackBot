@@ -4,7 +4,7 @@ import sys
 import statInterpreter
 
 
-client = WebClient(token='xoxb-5090655667488-5801495975025-c2OLHu6puJJcBqYa8Utpnf2n')
+client = WebClient(token='XXX')
 reader = statInterpreter.StatInterpreter('newTeamData.csv')
 reader.load()
 msg = reader.print_LeaderBoard('Lane Shuttle Left', False, 'sec')
