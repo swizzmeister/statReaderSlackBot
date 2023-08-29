@@ -101,7 +101,7 @@ class StatInterpreter:
         sortedList = self.sortLeaderboard(test, ltg)
         return sortedList
 
-    def print_LeaderBoard(self, stat,ltg):
+    def print_LeaderBoard(self, stat, ltg, unit):
         sortedLeaderboard = self.get_Sorted_Leaderboard(stat, ltg)
         pretty_print = "*   Ranked Average " + stat + " " + str(datetime.date.today()) + "*:\n"
         print(sortedLeaderboard)
@@ -114,7 +114,7 @@ class StatInterpreter:
         for player in sortedLeaderboard:
             space = ""
             space = ' ' * (max - len(player[0]))
-            pretty_print += (">" + str(int(i)) + ". " + player[0] + space + str(player[1]) + "sec\n")
+            pretty_print += (">" + str(int(i)) + ". " + player[0] + space + str(player[1]) + unit +"\n")
             i += 1
         return pretty_print
 

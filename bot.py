@@ -1,11 +1,12 @@
-import slack
+from slack import WebClient
 import os
 import sys
 import statInterpreter
 
-client = slack.WebClient(token='XXX')
+
+client = WebClient(token='xoxb-5090655667488-5801495975025-c2OLHu6puJJcBqYa8Utpnf2n')
 reader = statInterpreter.StatInterpreter('newTeamData.csv')
 reader.load()
-msg = reader.print_LeaderBoard('Lane Shuttle Left', False)
+msg = reader.print_LeaderBoard('Lane Shuttle Left', False, 'sec')
 print(msg)
-client.chat_postMessage(channel='#leaderboards', text=msg)
+client.chat_postMessage(channel='#random', text=msg)

@@ -15,9 +15,9 @@ def browseFiles():
                                                       "*.*")))
 
     # Change label contents
-    label_file_explorer.configure(text="File Opened: " + filename)
-    reader = statInterpreter.StatInterpreter(filepath)
-    print(filepath)
+    filename.label_file_explorer.configure(text="File Opened: " + filename)
+    reader = statInterpreter.StatInterpreter(filename)
+    print(filename)
     reader.load()
     return reader.getCatagories()
 
