@@ -36,7 +36,8 @@ class StatInterpreter:
 
     def getCatagories(self):
         return self.cata
-
+    def hasData(self):
+        return len(self.players) > 0
     def sortLeaderboard(self, pList, ltg):  # ((Name,Stat),(Name,Stat)...etc)
         def partition(array, low, high):
 
