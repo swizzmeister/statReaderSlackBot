@@ -18,7 +18,6 @@ class StatInterpreter:
             lin = 0
             csv_reader = csv.reader(csv_file, delimiter=',')
             for line in csv_reader:
-                print(line)
                 if lin > 0:
                     self.players[line[0]] = {}
                     i = 0
@@ -27,10 +26,8 @@ class StatInterpreter:
                         i += 1
                 else:
                     self.cata.append("Num")
-                    print(len(line))
                     for cat in line:
                         if cat:
-                            print(cat)
                             self.cata.append(cat)
                 lin += 1
 
@@ -86,40 +83,28 @@ class StatInterpreter:
         for curPlayer in self.players.items():
             curStat = curPlayer[1][stat]
             curName = curPlayer[1]["Name"]
-            print(curStat)
-            if curStat == "-" or curName == 'Opponent':
-                print(curName)
+            if curStat == "-" or curName == 'Opponent' or curStat == '':
                 continue
             elif "-" in curStat:
                 tStat = curStat.split('-')
-                print(tStat)
                 avg = (float(tStat[0]) + float(tStat[1])) / 2
                 test.append((curName, round(avg, 2)))
             else:
                 test.append((curName, float(curStat)))
-                print(curName)
-        print(test)
         sortedList = self.sortLeaderboard(test, ltg)
         return sortedList
 
     def print_LeaderBoard(self, stat, ltg, unit):
         sortedLeaderboard = self.get_Sorted_Leaderboard(stat, ltg)
         pretty_print = "*   Ranked Average " + stat + " " + str(datetime.date.today()) + "*:\n"
-        print(sortedLeaderboard)
         i = 1
         max = 0
         for player in sortedLeaderboard:
             if len(player[0]) > max: max = len(player[0])
         max += 4
-        print(max)
         for player in sortedLeaderboard:
             space = ""
             space = ' ' * (max - len(player[0]))
             pretty_print += (">" + str(int(i)) + ". " + player[0] + space + str(player[1]) + unit +"\n")
             i += 1
         return pretty_print
-
-
-#interpret = StatInterpreter("upei_lineups.csv")
-#interpret.print()
-#interpret.print_LeaderBoard("fg/g")
