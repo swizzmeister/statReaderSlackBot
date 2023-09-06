@@ -7,25 +7,26 @@ class StatInterpreter:
         self.players = {}
         self.cata = []
         self.path = path
+        self.stat_blacklist = '-', '', 'Nr'
 
     def print(self):
         print(self.players)
 
     def load(self):
-        self.players = {}
-        self.cata = []
+        self.players = {} #Store players in a dictionary where there number is there key
+        self.cata = []#store catagorys in an array
         with open(self.path) as csv_file:
             lin = 0
-            csv_reader = csv.reader(csv_file, delimiter=',')
-            for line in csv_reader:
+            csv_reader = csv.reader(csv_file, delimiter=',') # parse the csv
+            for line in csv_reader: # read the csv row by row
                 if lin > 0:
-                    self.players[line[0]] = {}
+                    self.players[line[0]] = {} #Index each new dictionary with the players number
                     i = 0
                     for l in line:
-                        self.players[line[0]][self.cata[i]] = l
+                        self.players[line[0]][self.cata[i]] = l #Index each stat with the string name of the catagory
                         i += 1
                 else:
-                    self.cata.append("Num")
+                    self.cata.append("Num") #If it's the catagory row make save the catagory into cata
                     for cat in line:
                         if cat:
                             self.cata.append(cat)
@@ -80,23 +81,22 @@ class StatInterpreter:
 
     def get_Sorted_Leaderboard(self, stat, ltg):
         test = []
-        for curPlayer in self.players.items():
-            curStat = curPlayer[1][stat]
-            curName = curPlayer[1]["Name"]
-            if curStat == "-" or curName == 'Opponent' or curStat == '':
-                continue
-            elif "-" in curStat:
-                tStat = curStat.split('-')
-                avg = (float(tStat[0]) + float(tStat[1])) / 2
-                test.append((curName, round(avg, 2)))
+        for curPlayer in self.players.items(): #for every player
+            cur_stat = curPlayer[1][stat]   #Take the stat in question and name
+            cur_name = curPlayer[1]["Name"]
+            if cur_stat in self.stat_blacklist or cur_name == 'Opponent': #Check if there stat is in the blacklist or there name
+                continue #skip that player
+            elif "-" in cur_stat:#if there are two stats split by '-' take the average and append that
+                t_stat = cur_stat.split('-')
+                avg = (float(t_stat[0]) + float(t_stat[1])) / 2
+                test.append((cur_name, round(avg, 2)))
             else:
-                test.append((curName, float(curStat)))
-        sortedList = self.sortLeaderboard(test, ltg)
-        return sortedList
+                test.append((cur_name, float(cur_stat)))
+        return self.sortLeaderboard(test, ltg) # return a sorted 2D tuple
 
     def print_LeaderBoard(self, stat, ltg, unit):
-        sortedLeaderboard = self.get_Sorted_Leaderboard(stat, ltg)
-        pretty_print = "*   Ranked Average " + stat + " " + str(datetime.date.today()) + "*:\n"
+        sortedLeaderboard = self.get_Sorted_Leaderboard(stat, ltg) #Save current sorted leaderboard stored in tuples to sortedLeaderBoard
+        pretty_print = "*   Ranked Average " + stat + " " + str(datetime.date.today()) + "*:\n"#Save heading into output string
         i = 1
         max = 0
         for player in sortedLeaderboard:
