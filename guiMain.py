@@ -1,10 +1,13 @@
-import tkinter as tk
-from tkinter import ttk
-from PIL import Image, ImageTk
-import slack
 import re
-import statInterpreter
+import slack
+import ssl
+import certifi
+import tkinter as tk
+from PIL import Image, ImageTk
 from tkinter import filedialog, Listbox, messagebox
+from tkinter import ttk
+
+import statInterpreter
 
 LARGEFONT = ("Helvetica", 15)
 ACTIVE = False
@@ -19,7 +22,7 @@ def browse_files(page, target):
     path = filedialog.askopenfilename(initialdir="/",
                                       title="Select a csv Stat File",
                                       filetypes=(("CSV files",
-                                                  "*.csv*"),
+                                                  "*.csv"),
                                                  ("all files",
                                                   "*.*")))
     reader = statInterpreter.StatInterpreter(path)
@@ -154,7 +157,8 @@ class slackAddFrame(tk.Frame):
     def assign_slack_key(self):
         self.root.set_slack_key = self.key.get()
         global CLIENT
-        CLIENT = slack.WebClient(token=self.key.get())
+        ssl_context = ssl.create_default_context(cafile=certifi.where())
+        CLIENT = slack.WebClient(token=self.key.get(),ssl=ssl_context)
         global CHANNEL
         CHANNEL = self.channel.get()
         if CLIENT.api_test()['ok'] and CLIENT.auth_test()['ok']:
@@ -171,7 +175,6 @@ class SlackTest(tk.Frame):
         if ACTIVE:
             if CLIENT.api_test()['ok'] and CLIENT.auth_test()['ok']:
                 image = Image.open('img/connected.png')
-
                 text = "Connected"
             else:
                 image = Image.open('img/disconnected.png')
@@ -305,7 +308,7 @@ class Page2(tk.Frame):
 
     def save_table(self):
         self.tables_saved.append(
-            "Category: [" + self.cat_c.get() + "]      Least to Greatest: [" + boolString(self.ltg.get()) + "]")
+            "Category: [" + self.cat_c.get() + "]      Greatest to Least: [" + boolString(self.ltg.get()) + "]")
         SELECTED.append((self.cat_c.get(), self.ltg.get()))
         self.saved_var.set(self.tables_saved)
         self.list_box.configure(listvariable=self.saved_var)
@@ -316,7 +319,7 @@ class Page2(tk.Frame):
         else:
             table = self.tables_saved[self.get_selected_index()]
             stats = re.split(r'\[(.*?)\]', table)
-            data_display_tree(self.reader, stats[1], stats[3])
+            data_display_tree(self.reader, stats[1], stringBool(stats[3]))
 
     def remove_selected(self):
         self.tables_saved.pop(self.get_selected_index())
