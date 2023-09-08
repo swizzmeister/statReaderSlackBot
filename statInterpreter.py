@@ -34,6 +34,36 @@ class StatInterpreter:
 
     def getCatagories(self):
         return self.cata
+    def getCatagorySum(self, stat):
+        sum = 0
+        for players in self.players:
+            if players[stat] in self.stat_blacklist:
+                continue
+            elif "-" in players[stat]:
+                stats = players[stat].split('-')
+                stat = max(stats[0], stats[1])
+                sum += (float(players[stat]))
+            else:
+                sum += float(players[stat])
+        return round(sum, 2)
+    def getCatagoryAvg(self,stat):
+        sum =0
+        stats_used =0
+        for players in self.players:
+            if players[stat] in self.stat_blacklist:
+                continue
+            elif "-" in players[stat]:
+                stats = players[stat].split('-')
+                stat = max(stats[0],stats[1])
+                sum += float(players[stat])
+                stats_used += 1
+            else:
+                sum += float(players[stat])
+                stats_used += 1
+
+        return round(sum/stats_used)
+
+
     def hasData(self):
         return len(self.players) > 0
     def sortLeaderboard(self, pList, ltg):  # ((Name,Stat),(Name,Stat)...etc)
@@ -94,7 +124,7 @@ class StatInterpreter:
                 test.append((cur_name, float(cur_stat)))
         return self.sortLeaderboard(test, ltg) # return a sorted 2D tuple
 
-    def print_LeaderBoard(self, stat, ltg, unit):
+    def print_LeaderBoard(self, stat, ltg, unit,sum = False, avg = False):
         sortedLeaderboard = self.get_Sorted_Leaderboard(stat, ltg) #Save current sorted leaderboard stored in tuples to sortedLeaderBoard
         pretty_print = "*   Ranked Average " + stat + " " + str(datetime.date.today()) + "*:\n"#Save heading into output string
         i = 1
@@ -107,4 +137,8 @@ class StatInterpreter:
             space = ' ' * (max - len(player[0]))
             pretty_print += (">" + str(int(i)) + ". " + player[0] + space + str(player[1]) + unit +"\n")
             i += 1
+        if sum:
+            pretty_print += (">Sum. "+ space + str(self.getCatagorySum(stat)) + " "  + unit +"\n")
+        if avg:
+            pretty_print += (">Average. " + space + str(self.getCatagoryAvg(stat)) + " " + unit + "\n")
         return pretty_print
