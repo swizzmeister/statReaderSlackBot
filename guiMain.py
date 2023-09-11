@@ -402,9 +402,11 @@ class PlayerComparison(tk.Frame):
         self.controller.show_frame(PlayerComparison)
 
     def save_table(self):
-        self.tables_saved.append(
-            "Category: [" + self.cat_c.get() + "]      Greatest to Least: [" + boolString(self.ltg.get()) + "]")
-        SELECTED.append((self.cat_c.get(), self.ltg.get()))
+        players = self.reader.get_Sorted_Leaderboard(self.cat_c.get(), True)
+        for player in players:
+            print(player[1] == float(self.query.get()))
+            if player[1] == float(self.query.get()):
+                self.tables_saved.append("Player :" + str(player[0]) + " Stat : " + str(player[1]))
         self.saved_var.set(self.tables_saved)
         self.list_box.configure(listvariable=self.saved_var)
 
