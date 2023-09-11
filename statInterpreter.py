@@ -124,9 +124,9 @@ class StatInterpreter:
                 test.append((cur_name, float(cur_stat)))
         return self.sortLeaderboard(test, ltg) # return a sorted 2D tuple
 
-    def print_LeaderBoard(self, stat, ltg, unit,sum = False, avg = False):
+    def print_LeaderBoard(self, stat, ltg, unit, sum = False, avg = False, date = str(datetime.date.today())):
         sortedLeaderboard = self.get_Sorted_Leaderboard(stat, ltg) #Save current sorted leaderboard stored in tuples to sortedLeaderBoard
-        pretty_print = "*   Ranked Average " + stat + " " + str(datetime.date.today()) + "*:\n"#Save heading into output string
+        pretty_print = "*   Ranked Average " + stat + " " + date + "*:\n"#Save heading into output string
         i = 1
         max = 0
         for player in sortedLeaderboard:
@@ -135,7 +135,7 @@ class StatInterpreter:
         for player in sortedLeaderboard:
             space = ""
             space = ' ' * (max - len(player[0]))
-            pretty_print += (">" + str(int(i)) + ". " + player[0] + space + str(player[1]) + unit +"\n")
+            pretty_print += (">" + str(int(i)) + ". " + player[0] + space + str(player[1]) + " " + unit +"\n")
             i += 1
         if sum:
             pretty_print += (">Sum. "+ space + str(self.getCatagorySum(stat)) + " "  + unit +"\n")

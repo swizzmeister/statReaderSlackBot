@@ -1,107 +1,57 @@
-import re
 import slack
-import ssl
-import certifi
 import tkinter as tk
-from PIL import Image, ImageTk
-from tkinter import filedialog, Listbox, messagebox
+from tkinter import filedialog, messagebox
 from tkinter import ttk
-
 import statInterpreter
-
-LARGEFONT = ("Helvetica", 15)
-ACTIVE = False
-ICON = "basketball.ico"
-SELECTED = []
-READER = object
-READ = object
-CLIENT = object
-CHANNEL = ""
-FILENAME = ""
-
-
-def browse_files(page, target):
-    path = filedialog.askopenfilename(initialdir="/",
-                                      title="Select a csv Stat File",
-                                      filetypes=(("CSV files",
-                                                  "*.csv"),
-                                                 ("all files",
-                                                  "*.*")))
-    reader = statInterpreter.StatInterpreter(path)
-    reader.load()
-    page.set_reader(reader)
-    global READ; READ = reader
-    global FILENAME; FILENAME = path.split('/')[-1]
-    target.load_reader(path.split('/')[-1], reader)
-
-
-def data_display_tree(leaderboard, stat, orderUp):
-    data_win = tk.Tk()
-    data_win.geometry('600x600')
-    data_win.title(stat + ' Leaderboard')
-    tv_data = ttk.Treeview(data_win)
-    tv_data.pack(fill=tk.BOTH, expand=True)
-    c_names = 'name', 'stat'
-    tv_data.configure(columns=c_names)
-    tv_data.heading('name', text='Name')
-    tv_data.heading('#0', text='Rank')
-    tv_data.heading('stat', text=stat)
-    i = 1
-    for player in leaderboard.get_Sorted_Leaderboard(stat, orderUp):
-        tv_data.insert(parent="",
-                       index=tk.END,
-                       text=i,
-                       values=(player[0], player[1]))
-        i += 1
-    data_win.mainloop()
-
-
-def slack_add(page):
-    new_window = tk.Tk()
-    new_window.title('Connect to API')
-    frame = slackAddFrame(new_window, page)
-    new_window.iconbitmap(ICON)
-    frame.pack()
-
-
-def slack_test(page):
-    new_window = tk.Tk()
-    new_window.title('API Connection Test')
-    new_window.iconbitmap(ICON)
-    frame = SlackTest(new_window, page)
-    frame.pack()
+from Frames.PlayerComparison import PlayerComparison
+from Frames.csv_leaderboard import csvPicker
+from Frames.empty_frame import EmptyFrame
+from Frames.slackFrames.slack_add_frame import slackAddFrame
+from Frames.slackFrames.slack_test import SlackTest
 
 
 class tkinterApp(tk.Tk):
     def __init__(self, *args, **kwargs):
         tk.Tk.__init__(self, *args, **kwargs)
+        self.LARGEFONT = ("Helvetica", 15)
+        self.ACTIVE = False
+        self.ICON = "basketball.ico"
+        self.SELECTED = []
+        self.READER = object
+        self.READ = object
+        self.CLIENT = object
+        self.CHANNEL = ""
+        self.FILENAME = ""
+        self.DATE = ""
         self.title('Slack Stats App')
-        self.iconbitmap(ICON)
+        self.iconbitmap(self.ICON)
         self.reader = None
         self.SLACKKEY = ""
         self.container = tk.Frame(self)
+        self.container.pack()
+        self.init_menu()
+        self.container.grid_rowconfigure(0, weight=1)
+        self.container.grid_columnconfigure(0, weight=1)
+        self.frames = {}
+        for F in (csvPicker, EmptyFrame, PlayerComparison):
+            frame = F(self.container, self)
+            self.frames[F] = frame
+            frame.grid(row=0, column=0, sticky="nsew")
+        self.show_frame(EmptyFrame)
+
+    def init_menu(self):
         menubar = tk.Menu(self)
         self.configure(menu=menubar, width=300, height=300)
         file_menu = tk.Menu(menubar)
         function_menu = tk.Menu(menubar)
         slack_menu = tk.Menu(menubar)
-
-        self.container.pack()
-
-        self.container.grid_rowconfigure(0, weight=1)
-        self.container.grid_columnconfigure(0, weight=1)
-        self.frames = {}
-        for F in (StartPage, Page1, Page2, EmptyFrame, PlayerComparison):
-            frame = F(self.container, self)
-            self.frames[F] = frame
-            frame.grid(row=0, column=0, sticky="nsew")
-        self.show_frame(EmptyFrame)
-        function_menu.add_command(label='Player Comparison', command=lambda : self.frames[PlayerComparison].load_reader(FILENAME, READ))
-        function_menu.add_command(label='Single Stat Leaderboard', command=lambda: self.show_frame(Page2))
-        file_menu.add_command(label='Open CSV', command=lambda: browse_files(self, self.frames[Page2]))
+        function_menu.add_command(label='Player Comparison', command=lambda: self.frames[
+            PlayerComparison].load_reader(self.FILENAME, self.READ))
+        function_menu.add_command(label='Single Stat Leaderboard', command=lambda: self.show_frame(csvPicker))
+        file_menu.add_command(label='Open CSV', command=lambda: self.browse_files(self, self.frames[csvPicker]))
         file_menu.add_command(label='Export to Slack', command=lambda: self.export_to_slack())
-        slack_menu.add_command(label='Connect to Slack', command=lambda: slack_add(self))
-        slack_menu.add_command(label='Test Connection', command=lambda: slack_test(self))
+        slack_menu.add_command(label='Connect to Slack', command=lambda: self.slack_add())
+        slack_menu.add_command(label='Test Connection', command=lambda: self.slack_test())
 
         menubar.add_cascade(
             label="File",
@@ -120,9 +70,10 @@ class tkinterApp(tk.Tk):
         frame = self.frames[cont]
         frame.tkraise()
         frame.grid()
+
     def set_reader(self, reader):
         self.reader = reader
-        self.show_frame(Page2)
+        self.show_frame(csvPicker)
 
     def get_reader(self):
         return self.reader
@@ -133,326 +84,82 @@ class tkinterApp(tk.Tk):
     def get_slack_key(self):
         return self.SLACKKEY
 
+    def set_date(self, date):
+        self.DATE = date
+
     def export_to_slack(self):
-        if not ACTIVE:
+        if not self.ACTIVE:
             messagebox.showwarning('Slack Client Error', 'Please connect to a Slack Workspace')
         else:
             try:
-                for entry in SELECTED:
-                    global CLIENT
-                    CLIENT.chat_postMessage(channel=CHANNEL,
-                                            text=self.reader.print_LeaderBoard(entry[0], entry[1], entry[0]))
+                for entry in self.SELECTED:
+                    self.CLIENT.chat_postMessage(channel=self.CHANNEL,
+                                                 text=self.reader.print_LeaderBoard(entry[0], entry[1], entry[0], date=self.DATE))
             except slack.errors.SlackApiError as e:
                 messagebox.showerror('Slack Client Error', 'Table was not sent successfully!\n' + str(e))
             else:
                 messagebox.showinfo('Slack Bot', 'Table(s) sent successfully!')
 
+    def slack_test(self):
+        new_window = tk.Toplevel()
+        new_window.title('API Connection Test')
+        new_window.iconbitmap(self.ICON)
+        frame = SlackTest(new_window, self)
+        frame.pack()
 
-class slackAddFrame(tk.Frame):
-    def __init__(self, parent, root):
-        tk.Frame.__init__(self, parent)
-        self.parent = parent
-        self.root = root
-        self.slack_key_entry = tk.StringVar()
-        self.slack_key_entry.set("Hello")
-        self.slack_channel_entry = tk.StringVar()
-        l = ttk.Label(self, text="Slack Key:")
-        self.key = ttk.Entry(self, textvariable=self.slack_key_entry)
-        l.grid(row=0, column=0, padx=20, pady=10)
-        self.key.grid(row=0, column=1, padx=20, pady=10)
-        l = ttk.Label(self, text="Channel:")
-        self.channel = ttk.Entry(self, textvariable=self.slack_channel_entry)
-        l.grid(row=1, column=0, padx=20, pady=10)
-        self.channel.grid(row=1, column=1, padx=20, pady=10)
-        button1 = ttk.Button(self,
-                             text="Set Key",
-                             command=lambda: self.assign_slack_key())
-        button1.grid(row=2, column=0, columnspan=2, padx=20, pady=10)
+    def slack_add(self):
+        new_window = tk.Toplevel()
+        new_window.title('Connect to API')
+        frame = slackAddFrame(new_window, self)
+        new_window.iconbitmap(self.ICON)
+        frame.pack()
 
-    def assign_slack_key(self):
-        self.root.set_slack_key = self.key.get()
-        global CLIENT
-        ssl_context = ssl.create_default_context(cafile=certifi.where())
-        CLIENT = slack.WebClient(token=self.key.get(), ssl=ssl_context)
-        global CHANNEL
-        CHANNEL = self.channel.get()
-        if CLIENT.api_test()['ok'] and CLIENT.auth_test()['ok']:
-            global ACTIVE
-            ACTIVE = True
-        self.parent.destroy()
+    def browse_files(self, page, target):
+        path = filedialog.askopenfilename(initialdir="/",
+                                          title="Select a csv Stat File",
+                                          filetypes=(("CSV files",
+                                                      "*.csv"),
+                                                     ("all files",
+                                                      "*.*")))
+        reader = statInterpreter.StatInterpreter(path)
+        reader.load()
+        page.set_reader(reader)
+        self.READ = reader
+        self.FILENAME = path.split('/')[-1]
+        target.load_reader(path.split('/')[-1], reader)
 
-
-class SlackTest(tk.Frame):
-
-    def __init__(self, parent, root):
-        tk.Frame.__init__(self, parent)
-        self.parent = parent
-        if ACTIVE:
-            if CLIENT.api_test()['ok'] and CLIENT.auth_test()['ok']:
-                image = Image.open('img/connected.png')
-                text = "Connected"
-            else:
-                image = Image.open('img/disconnected.png')
-                text = "Disconnected"
-        else:
-            image = Image.open('img/disconnected.png')
-            text = "Disconnected"
-
-        image_tk = ImageTk.PhotoImage(master=self, image=image)
-        label = ttk.Label(self, image=image_tk)
-        label.image = image_tk
-        label.grid(row=0, column=0, pady=10, padx=20)
-        label1 = ttk.Label(self, text=text)
-        label1.grid(row=0, column=2, pady=10, padx=20)
-
-
-class StartPage(tk.Frame):
-    def __init__(self, parent, controller):
-        tk.Frame.__init__(self, parent)
-
-        # label of frame Layout 2
-        label = ttk.Label(self, text="Startpage", font=LARGEFONT)
-
-        # putting the grid in its place by using
-        # grid
-        label.pack(pady=20)
-
-        button1 = ttk.Button(self, text="Config Slack",
-                             command=lambda: controller.show_frame(Page1))
-
-        # putting the button in its place by
-        # using grid
-        button1.pack(pady=40)
-
-        ## button to show frame 2 with text layout2
-        button2 = ttk.Button(self, text="Config CSV",
-                             command=lambda: controller.show_frame(Page2))
-
-        # putting the button in its place by
-        # using grid
-        button2.pack(pady=40)
-
-
-# second window frame page1
-
-class Page1(tk.Frame):
-
-    def __init__(self, parent, controller):
-        tk.Frame.__init__(self, parent)
-        self.slack_key = tk.StringVar()
-        self.label = ttk.Label(self, text="OFFLINE", foreground="red", font=LARGEFONT)
-        self.label.grid(row=0, column=0, padx=10, pady=10)
-
-        # button to show frame 2 with text
-        # layout2
-        l = ttk.Label(self, text="Slack Key:")
-        self.key = ttk.Entry(self, textvariable=self.slack_key)
-        l.grid(row=1, column=0, padx=10, pady=10)
-        self.key.grid(row=1, column=2, columnspan=2, padx=10, pady=10)
-
-        button1 = ttk.Button(self, text="Set Key",
-                             command=lambda: self.assign_slack_key())
-
-        # putting the button in its place
-        # by using grid
-        button1.grid(row=2, column=0, columnspan=2, padx=10, pady=10)
-
-        # button to show frame 2 with text
-        # layout2
-        button2 = ttk.Button(self, text="Config CSV",
-                             command=lambda: controller.show_frame(Page2))
-
-        # putting the button in its place by
-        # using grid
-        button2.grid(row=3, column=0, columnspan=2, padx=10, pady=10)
-
-        button3 = ttk.Button(self, text="Test Slack Connection", command=lambda: self.testSlackKey())
-        button3.grid(row=4, column=0, columnspan=2, padx=10, pady=10)
-
-    def assign_slack_key(self):
-        SLACKKEY = self.slack_key.get()
-        global CLIENT
-        CLIENT = slack.WebClient(token=SLACKKEY)
-        self.label.configure(foreground="black", text="Key-Set")
-        self.label.grid(row=0, column=0, padx=10, pady=10)
-
-    def testSlackKey(self):
-        if CLIENT.api_test()['ok']:
-            self.label.configure(foreground="green", text="Online")
-            self.label.grid(row=0, column=0, padx=10, pady=10)
-
-
-# third window frame page2
-class Page2(tk.Frame):
-    def __init__(self, parent, controller):
-        tk.Frame.__init__(self, parent)
-        self.reader = controller.get_reader()
-        self.cat_c = tk.StringVar()
-        self.cat_c.set("Choose Category")
-        self.tables_saved = []
-        self.saved_var = tk.StringVar(value=self.tables_saved)
-        self.ltg = tk.BooleanVar()
-        self.sum_bool_var = tk.BooleanVar()
-        self.avg_bool_var = tk.BooleanVar()
-        self.ltg.set("False")
-        self.list_box = Listbox(self, height=6, listvariable=self.tables_saved)
-        self.list_box.configure(width=int((controller.winfo_width() / 3) - 8))
-        self.list_box.grid(column=0, row=3, columnspan=3, pady=3, padx=3)
-        self.label = ttk.Label(self, text="", font=LARGEFONT)
-        self.label.grid(columnspan=3, column=0, row=0, padx=30, pady=10)
-        button0 = ttk.Button(self, text="-",
-                             command=lambda: self.remove_selected())
-        button0.grid(row=2, column=1, padx=10, pady=10)
-        self.button1 = ttk.Button(self, text="Show table",
-                                  command=lambda: self.show_selected_table())
-        self.button1.grid(row=1, column=0, columnspan=2, padx=10, pady=10)
-        button2 = ttk.Button(self,
-                             text="+",
-                             command=lambda: self.save_table())
-        button2.grid(row=2, column=0, padx=10, pady=10)
-
-        check = ttk.Checkbutton(self, text="Greatest to Least", variable=self.ltg)
-        check.grid(column=2, row=2, padx=10, pady=10)
-
-    def load_reader(self, filename, reader):
-        self.reader = reader
-        self.label.configure(text=filename, foreground="grey")
-        cols = self.reader.getCatagories()
-        drop = tk.OptionMenu(self, self.cat_c, *cols)
-        drop.grid(column=2, row=1, padx=10, pady=10)
-        self.tables_saved = []
-        self.saved_var.set(self.tables_saved)
-        self.list_box.configure(listvariable=self.saved_var)
-
-    def save_table(self):
-        self.tables_saved.append(
-            "Category: [" + self.cat_c.get() + "]      Greatest to Least: [" + boolString(self.ltg.get()) + "]")
-        SELECTED.append((self.cat_c.get(), self.ltg.get()))
-        self.saved_var.set(self.tables_saved)
-        self.list_box.configure(listvariable=self.saved_var)
-
-    def show_selected_table(self):
-        if self.get_selected_index() < 0:
-            messagebox.showwarning('Slack Client Error', 'Please select a table!')
-        else:
-            table = self.tables_saved[self.get_selected_index()]
-            stats = re.split(r'\[(.*?)\]', table)
-            data_display_tree(self.reader, stats[1], stringBool(stats[3]))
-
-    def remove_selected(self):
-        self.tables_saved.pop(self.get_selected_index())
-        SELECTED.pop(self.get_selected_index())
-        self.saved_var.set(self.tables_saved)
-        self.list_box.configure(listvariable=self.saved_var)
-
-    def get_selected_index(self):
-        i = 0
-        while i < len(self.tables_saved):
-            if self.list_box.selection_includes(i):
-                return i
+    def data_display_tree(self, leaderboard, stat, orderUp):
+        data_win = tk.Toplevel()
+        data_win.geometry('600x600')
+        data_win.title(stat + ' Leaderboard')
+        tv_data = ttk.Treeview(data_win)
+        c_names = 'name', 'stat'
+        tv_data.configure(columns=c_names)
+        tv_data.heading('name', text='Name')
+        tv_data.heading('#0', text='Rank')
+        tv_data.heading('stat', text=stat)
+        i = 1
+        for player in leaderboard.get_Sorted_Leaderboard(stat, orderUp):
+            tv_data.insert(parent="",
+                           index=tk.END,
+                           text=i,
+                           values=(player[0], player[1]))
             i += 1
-        return -1
 
+        tv_data.pack(fill=tk.BOTH, expand=True)
 
-class PlayerComparison(tk.Frame):
-    def __init__(self, parent, controller):
-        tk.Frame.__init__(self, parent)
-        self.reader = controller.get_reader()
-        self.controller = controller
-        self.cat_c = tk.StringVar()
-        self.cat_c.set("Choose Category")
-        self.tables_saved = []
-        self.query = tk.StringVar()
-        self.saved_var = tk.StringVar(value=self.tables_saved)
-        self.ltg = tk.BooleanVar()
-        self.sum_bool_var = tk.BooleanVar()
-        self.avg_bool_var = tk.BooleanVar()
-        self.ltg.set("False")
-        self.list_box = Listbox(self, height=6, listvariable=self.tables_saved)
-        self.list_box.configure(width=int((controller.winfo_width() / 3) - 8))
-        self.list_box.grid(column=0, row=4, columnspan=4, pady=3, padx=3)
-        self.label = ttk.Label(self, text="CSV", font=LARGEFONT)
-        self.label.grid(columnspan=4, column=0, row=0, padx=30, pady=10)
-        button0 = ttk.Button(self, text="-",
-                             command=lambda: self.remove_selected())
-        button0.grid(row=3, column=3, padx=10, pady=10)
-        self.button1 = ttk.Button(self, text="Show table",
-                                  command=lambda: self.show_selected_table())
-        self.button1.grid(row=2, column=0, columnspan=2, rowspan=2, padx=10, pady=10)
-        button2 = ttk.Button(self,
-                             text="+",
-                             command=lambda: self.save_table())
-        button2.grid(row=2, column=3,columnspan=2, padx=10, pady=10)
+    @staticmethod
+    def boolString(b):
+        if b:
+            return "True"
+        return "False"
 
-        l = ttk.Label(self, text="Add all players where stat:")
-        self.key = ttk.Entry(self, textvariable=self.query)
-        l.grid(row=1, column=0, padx=10, pady=10)
-        self.key.grid(row=1, column=3, columnspan=2, padx=10, pady=10)
-        l2 = ttk.Label(self, text="is equal to")
-        l2.grid(row=1, column=2, padx=10, pady=10)
-
-    def load_reader(self, filename, reader):
-        self.reader = reader
-        self.label.configure(text=filename + " Player Comparison", foreground="grey")
-        cols = self.reader.getCatagories()
-        drop = tk.OptionMenu(self, self.cat_c, *cols)
-        drop.grid(column=1, row=1, padx=10, pady=10)
-        self.tables_saved = []
-        self.saved_var.set(self.tables_saved)
-        self.list_box.configure(listvariable=self.saved_var)
-        self.controller.show_frame(PlayerComparison)
-
-    def save_table(self):
-        players = self.reader.get_Sorted_Leaderboard(self.cat_c.get(), True)
-        for player in players:
-            print(player[1] == float(self.query.get()))
-            if player[1] == float(self.query.get()):
-                self.tables_saved.append("Player :" + str(player[0]) + "\t\t Stat : " + str(player[1]))
-        self.saved_var.set(self.tables_saved)
-        self.list_box.configure(listvariable=self.saved_var)
-
-    def show_selected_table(self):
-        if self.get_selected_index() < 0:
-            messagebox.showwarning('Slack Client Error', 'Please select a table!')
+    @staticmethod
+    def stringBool(s):
+        if s == "True":
+            return True
         else:
-            table = self.tables_saved[self.get_selected_index()]
-            stats = re.split(r'\[(.*?)\]', table)
-            data_display_tree(self.reader, stats[1], stringBool(stats[3]))
-
-    def remove_selected(self):
-        self.tables_saved.pop(self.get_selected_index())
-        SELECTED.pop(self.get_selected_index())
-        self.saved_var.set(self.tables_saved)
-        self.list_box.configure(listvariable=self.saved_var)
-
-    def get_selected_index(self):
-        i = 0
-        while i < len(self.tables_saved):
-            if self.list_box.selection_includes(i):
-                return i
-            i += 1
-        return -1
-
-
-def boolString(bool):
-    if bool:
-        return "True"
-    return "False"
-
-
-def stringBool(string):
-    if string == "True":
-        return True
-    else:
-        return False
-
-
-class EmptyFrame(tk.Frame):
-    def __init__(self, parent, controller):
-        tk.Frame.__init__(self, parent)
-        label = ttk.Label(master=self, text="No Available CSV", font=('Helvetica', 24))
-        label.configure(foreground="grey")
-        label.place(relx=0.5, rely=0.5, anchor='center')
+            return False
 
 
 # Driver Code
