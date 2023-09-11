@@ -79,24 +79,25 @@ class tkinterApp(tk.Tk):
         self.iconbitmap(ICON)
         self.reader = None
         self.SLACKKEY = ""
-        container = tk.Frame(self)
+        self.container = tk.Frame(self)
         menubar = tk.Menu(self)
         self.configure(menu=menubar, width=300, height=300)
         file_menu = tk.Menu(menubar)
         function_menu = tk.Menu(menubar)
         slack_menu = tk.Menu(menubar)
 
-        container.pack()
+        self.container.pack()
 
-        container.grid_rowconfigure(0, weight=1)
-        container.grid_columnconfigure(0, weight=1)
+        self.container.grid_rowconfigure(0, weight=1)
+        self.container.grid_columnconfigure(0, weight=1)
         self.frames = {}
         for F in (StartPage, Page1, Page2, EmptyFrame, PlayerComparison):
-            frame = F(container, self)
+            frame = F(self.container, self)
             self.frames[F] = frame
             frame.grid(row=0, column=0, sticky="nsew")
         self.show_frame(EmptyFrame)
         function_menu.add_command(label='Player Comparison', command=lambda : self.frames[PlayerComparison].load_reader(FILENAME, READ))
+        function_menu.add_command(label='Single Stat Leaderboard', command=lambda: self.show_frame(Page2))
         file_menu.add_command(label='Open CSV', command=lambda: browse_files(self, self.frames[Page2]))
         file_menu.add_command(label='Export to Slack', command=lambda: self.export_to_slack())
         slack_menu.add_command(label='Connect to Slack', command=lambda: slack_add(self))
@@ -118,7 +119,7 @@ class tkinterApp(tk.Tk):
     def show_frame(self, cont):
         frame = self.frames[cont]
         frame.tkraise()
-
+        frame.grid()
     def set_reader(self, reader):
         self.reader = reader
         self.show_frame(Page2)
@@ -406,7 +407,7 @@ class PlayerComparison(tk.Frame):
         for player in players:
             print(player[1] == float(self.query.get()))
             if player[1] == float(self.query.get()):
-                self.tables_saved.append("Player :" + str(player[0]) + " Stat : " + str(player[1]))
+                self.tables_saved.append("Player :" + str(player[0]) + "\t\t Stat : " + str(player[1]))
         self.saved_var.set(self.tables_saved)
         self.list_box.configure(listvariable=self.saved_var)
 
