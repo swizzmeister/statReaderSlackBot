@@ -23,7 +23,9 @@ class tkinterApp(tk.Tk):
         self.CHANNEL = ""
         self.FILENAME = ""
         self.DATE = ""
-        self.title('Slack Stats App')
+        self.SUMLINE = False
+        self.AVGLINE = False
+        self.title('StatSync')
         self.iconbitmap(self.ICON)
         self.reader = None
         self.SLACKKEY = ""
@@ -94,7 +96,9 @@ class tkinterApp(tk.Tk):
             try:
                 for entry in self.SELECTED:
                     self.CLIENT.chat_postMessage(channel=self.CHANNEL,
-                                                 text=self.reader.print_LeaderBoard(entry[0], entry[1], entry[0], date=self.DATE))
+                                                 text=self.reader.print_LeaderBoard(stat=entry[0], ltg=entry[1],
+                                                                                    unit=entry[0], date=self.DATE,
+                                                                                    avg=entry[2], sum=entry[3]))
             except slack.errors.SlackApiError as e:
                 messagebox.showerror('Slack Client Error', 'Table was not sent successfully!\n' + str(e))
             else:

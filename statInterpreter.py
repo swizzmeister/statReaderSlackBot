@@ -20,6 +20,8 @@ class StatInterpreter:
             csv_reader = csv.reader(csv_file, delimiter=',') # parse the csv
             for line in csv_reader: # read the csv row by row
                 if lin > 0:
+                    if line[0] == "":
+                        continue
                     self.players[line[0]] = {} #Index each new dictionary with the players number
                     i = 0
                     for l in line:
@@ -36,29 +38,31 @@ class StatInterpreter:
         return self.cata
     def getCatagorySum(self, stat):
         sum = 0
-        for players in self.players:
-            if players[stat] in self.stat_blacklist:
+        for key in self.players.keys():
+            p = self.players[key]
+            if p[stat] in self.stat_blacklist or p['Name'] in self.stat_blacklist:
                 continue
-            elif "-" in players[stat]:
-                stats = players[stat].split('-')
+            elif "-" in p[stat]:
+                stats = p[stat].split('-')
                 stat = max(stats[0], stats[1])
-                sum += (float(players[stat]))
+                sum += (float(p[stat]))
             else:
-                sum += float(players[stat])
+                sum += float(p[stat])
         return round(sum, 2)
     def getCatagoryAvg(self,stat):
         sum =0
         stats_used =0
-        for players in self.players:
-            if players[stat] in self.stat_blacklist:
+        for key in self.players.keys():
+            p = self.players[key]
+            if p[stat] in self.stat_blacklist or p['Name'] in self.stat_blacklist:
                 continue
-            elif "-" in players[stat]:
-                stats = players[stat].split('-')
+            elif "-" in p[stat]:
+                stats = p[stat].split('-')
                 stat = max(stats[0],stats[1])
-                sum += float(players[stat])
+                sum += float(p[stat])
                 stats_used += 1
             else:
-                sum += float(players[stat])
+                sum += float(p[stat])
                 stats_used += 1
 
         return round(sum/stats_used)
