@@ -46,9 +46,9 @@ class csvPicker(tk.Frame):
 
         check = ttk.Checkbutton(self, text="Greatest to Least", variable=self.ltg)
         check.grid(column=2, row=2, padx=10, pady=3)
-        check1 = ttk.Checkbutton(self, text="Average Line", variable=self.sum_bool_var)
+        check1 = ttk.Checkbutton(self, text="Average Line", variable=self.avg_bool_var)
         check1.grid(column=2, row=3, padx=10, pady=3)
-        check2 = ttk.Checkbutton(self, text="Sum Line", variable=self.avg_bool_var)
+        check2 = ttk.Checkbutton(self, text="Sum Line", variable=self.sum_bool_var)
         check2.grid(column=2, row=4, padx=10, pady=3)
 
     def setDate(self):
@@ -80,7 +80,8 @@ class csvPicker(tk.Frame):
         else:
             table = self.tables_saved[self.get_selected_index()]
             stats = re.split(r'\[(.*?)\]', table)
-            self.controller.data_display_tree(self.reader, stats[1], self.controller.stringBool(stats[3]))
+            self.controller.leaderboard_data_display_tree(self.reader, stats[1], self.controller.stringBool(stats[3]),
+                                                          self.controller.stringBool(stats[5]), self.controller.stringBool(stats[7]))
 
     def remove_selected(self):
         self.tables_saved.pop(self.get_selected_index())

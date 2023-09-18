@@ -131,8 +131,8 @@ class tkinterApp(tk.Tk):
         self.READ = reader
         self.FILENAME = path.split('/')[-1]
         target.load_reader(path.split('/')[-1], reader)
-
-    def data_display_tree(self, leaderboard, stat, orderUp):
+    @staticmethod
+    def leaderboard_data_display_tree(leaderboard, stat, orderUp, sum, avg):
         data_win = tk.Toplevel()
         data_win.geometry('600x600')
         data_win.title(stat + ' Leaderboard')
@@ -149,7 +149,59 @@ class tkinterApp(tk.Tk):
                            text=i,
                            values=(player[0], player[1]))
             i += 1
+        if sum:
+            tv_data.insert(parent="", index=tk.END,
+                            text="SUM", values=(' ', '=' + str(leaderboard.getCatagorySum(stat))))
+        if avg:
+            tv_data.insert(parent="", index=tk.END,
+                               text="AVG", values=(' ', '=' + str(leaderboard.getCatagoryAvg(stat))))
+        tv_data.pack(fill=tk.BOTH, expand=True)
 
+
+    def player_compare_data_display_tree(self, stat, orderUp, sum, avg):
+        data_win = tk.Toplevel()
+        data_win.geometry('600x600')
+        data_win.title('Player Comparison')
+        tv_data = ttk.Treeview(data_win)
+        c_names = self.READ.calculable_cols()
+        print('c_names', c_names)
+        tv_data.configure(columns=c_names)
+        i=0
+        for col in c_names:
+            if i == 0:
+                tv_data.heading('#0', text="Names")
+            tv_data.heading(col, text=col)
+            tv_data.column(col, minwidth=5, width=20)
+            i += 1
+        i = 1
+        print(len(self.READ.players))
+        for num in self.READ.playerNums:
+            player = self.READ.players[num]
+            print('PLayer', player)
+            stat_list = [stats for stats in player.items()]
+            print(len(stat_list))
+            pName = ""
+            i=0
+            while i < len(stat_list):
+                stat = stat_list[i]
+                print('Stat', stat[0])
+                if stat[0] == 'Name':
+                    pName = stat[1]
+                    stat_list.remove(stat)
+                    i -= 1
+                elif stat[0] not in c_names:
+                    stat_list.remove(stat)
+                    i -= 1
+                else:
+                    print(stat[0])
+                    stat_list[stat_list.index(stat)] = self.READ.getCatagoryAvg(stat[0]) - float(stat[1].split('-')[0])
+                i+=1
+            print(stat_list , i)
+            tv_data.insert(parent="",
+                           index=tk.END,
+                           text=pName,
+                           values=stat_list)
+            i += 1
         tv_data.pack(fill=tk.BOTH, expand=True)
 
     @staticmethod

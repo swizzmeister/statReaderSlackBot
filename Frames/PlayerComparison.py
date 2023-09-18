@@ -7,6 +7,7 @@ class PlayerComparison(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
         self.reader = controller.get_reader()
+        self.PLAYERS = {}
         self.controller = controller
         self.cat_c = tk.StringVar()
         self.cat_c.set("Choose Category")
@@ -17,7 +18,7 @@ class PlayerComparison(tk.Frame):
         self.sum_bool_var = tk.BooleanVar()
         self.avg_bool_var = tk.BooleanVar()
         self.ltg.set("False")
-        self.list_box = Listbox(self, height=6, listvariable=self.tables_saved)
+        self.list_box = Listbox(self, height=6, listvariable=self.saved_var)
         self.list_box.configure(width=int((controller.winfo_width() / 3) - 8))
         self.list_box.grid(column=0, row=4, columnspan=4, pady=3, padx=3)
         self.label = ttk.Label(self, text="CSV", font=self.controller.LARGEFONT)
@@ -52,21 +53,26 @@ class PlayerComparison(tk.Frame):
         self.controller.show_frame(PlayerComparison)
 
     def save_table(self):
-        players = self.reader.get_Sorted_Leaderboard(self.cat_c.get(), True)
-        for player in players:
-            print(player[1] == float(self.query.get()))
-            if player[1] == float(self.query.get()):
-                self.tables_saved.append("Player :" + str(player[0]) + "\t\t Stat : " + str(player[1]))
+        players = self.reader.get_column(self.cat_c.get())
+        for num in players.keys():
+            player = players.get(num)
+            if player == self.query.get():
+                self.PLAYERS[num] = self.reader.get_Row(num)
+                self.tables_saved.append("Player : " + self.reader.get_Row(num)['Name'] + "\t\tCategory Found: " +
+                                         str(self.cat_c.get()))
         self.saved_var.set(self.tables_saved)
         self.list_box.configure(listvariable=self.saved_var)
 
     def show_selected_table(self):
-        if self.get_selected_index() < 0:
-            messagebox.showwarning('Slack Client Error', 'Please select a table!')
+        if len(self.PLAYERS) < 1:
+            messagebox.showwarning('Table Display Error', 'Please add ' + str(2-len(self.PLAYERS)) + " more players")
         else:
+
             table = self.tables_saved[self.get_selected_index()]
-            stats = re.split(r'\[(.*?)\]', table)
-            self.controller.data_display_tree(self.reader, stats[1], self.controller.stringBool(stats[3]))
+            stats = self.reader.calculable_cols()
+            selectedPlayers = list(self.PLAYERS.keys())
+            self.controller.player_compare_data_display_tree(stats[1], self.controller.stringBool(stats[3]),
+                                              self.controller.stringBool(stats[5]), self.controller.stringBool(stats[7]))
 
     def remove_selected(self):
         self.tables_saved.pop(self.get_selected_index())
