@@ -1,5 +1,7 @@
 import csv
 import datetime
+import PlayerData
+import sheetData
 
 
 class StatInterpreter:
@@ -12,6 +14,7 @@ class StatInterpreter:
 
 
     def load(self):
+        sheet = sheetData.SheetData()
         with open(self.path) as csv_file:
             counter = 0
             csv_reader = csv.reader(csv_file, delimiter=',') # parse the csv
@@ -22,9 +25,15 @@ class StatInterpreter:
                     self.players[int(row[0])] = {} #Index each new dictionary with the players number
                     self.playerNums.append(int(row[0]))
                     i = 0
+                    colData = {}
                     for l in row:
+                        if len(l) > 1 and '-' in l:
+                            if l.split('-')[0] != '':
+                                colData[self.cata[i]] = max(l[0], l[2])
+                        colData[self.cata[i]] = l
                         self.players[int(row[0])][self.cata[i]] = l #Index each stat with the string name of the catagory
                         i += 1
+                    sheet.append(playerData(self.cata, colData))
                 else:
                     self.cata.append("Num") #If it's the catagory row make save the catagory into cata
                     for cat in row:

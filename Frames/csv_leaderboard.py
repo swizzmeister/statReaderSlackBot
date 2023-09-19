@@ -8,7 +8,7 @@ class csvPicker(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
         self.controller = controller
-        self.reader = controller.get_reader()
+        self.sheet_data = controller.get_sheet_data()
         self.date = datetime.date.today().strftime("%Y/%m/%d")
         self.cat_c = tk.StringVar()
         self.date_set = tk.StringVar()
@@ -54,10 +54,10 @@ class csvPicker(tk.Frame):
     def setDate(self):
         self.controller.set_date(date=self.date_set.get())
 
-    def load_reader(self, filename, reader):
-        self.reader = reader
+    def load_sheet(self, filename, sheet_data):
+        self.sheet_data = sheet_data
         self.label.configure(text=filename + " to Leaderboard", foreground="grey")
-        cols = self.reader.getCatagories()
+        cols = self.sheet_data.cols
         drop = tk.OptionMenu(self, self.cat_c, *cols)
         drop.grid(column=2, row=1, padx=10, pady=10)
         self.tables_saved = []
@@ -80,7 +80,7 @@ class csvPicker(tk.Frame):
         else:
             table = self.tables_saved[self.get_selected_index()]
             stats = re.split(r'\[(.*?)\]', table)
-            self.controller.leaderboard_data_display_tree(self.reader, stats[1], self.controller.stringBool(stats[3]),
+            self.controller.leaderboard_data_display_tree(self.sheet_data, stats[1], self.controller.stringBool(stats[3]),
                                                           self.controller.stringBool(stats[5]), self.controller.stringBool(stats[7]))
 
     def remove_selected(self):

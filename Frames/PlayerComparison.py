@@ -6,7 +6,7 @@ from tkinter import Listbox, ttk, messagebox
 class PlayerComparison(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
-        self.reader = controller.get_reader()
+        self.SHEET = controller.get_sheet_data()
         self.PLAYERS = {}
         self.controller = controller
         self.cat_c = tk.StringVar()
@@ -41,10 +41,10 @@ class PlayerComparison(tk.Frame):
         l2 = ttk.Label(self, text="is equal to")
         l2.grid(row=1, column=2, padx=10, pady=10)
 
-    def load_reader(self, filename, reader):
-        self.reader = reader
+    def load_sheet(self, filename, sheet):
+        self.SHEET = sheet
         self.label.configure(text=filename + " Player Comparison", foreground="grey")
-        cols = self.reader.getCatagories()
+        cols = self.SHEET.cols
         drop = tk.OptionMenu(self, self.cat_c, *cols)
         drop.grid(column=1, row=1, padx=10, pady=10)
         self.tables_saved = []
@@ -53,12 +53,13 @@ class PlayerComparison(tk.Frame):
         self.controller.show_frame(PlayerComparison)
 
     def save_table(self):
-        players = self.reader.get_column(self.cat_c.get())
+        players = self.SHEET.get_col_data(self.cat_c.get())
         for num in players.keys():
             player = players.get(num)
             if player == self.query.get():
-                self.PLAYERS[num] = self.reader.get_Row(num)
-                self.tables_saved.append("Player : " + self.reader.get_Row(num)['Name'] + "\t\tCategory Found: " +
+                self.PLAYERS[num] = self.SHEET.getPlayer(num).get_stats(self.SHEET.cols)
+                self.tables_saved.append("Player : " + self.SHEET.getPlayer(num).get_stats('Name') + "\t\tCategory "
+                                                                                                     "Found: " +
                                          str(self.cat_c.get()))
         self.saved_var.set(self.tables_saved)
         self.list_box.configure(listvariable=self.saved_var)
@@ -69,10 +70,9 @@ class PlayerComparison(tk.Frame):
         else:
 
             table = self.tables_saved[self.get_selected_index()]
-            stats = self.reader.calculable_cols()
+            stats = self.SHEET.get_calc_Cols()
             selectedPlayers = list(self.PLAYERS.keys())
-            self.controller.player_compare_data_display_tree(stats[1], self.controller.stringBool(stats[3]),
-                                              self.controller.stringBool(stats[5]), self.controller.stringBool(stats[7]))
+            self.controller.player_compare_data_display_tree(stats, selectedPlayers)
 
     def remove_selected(self):
         self.tables_saved.pop(self.get_selected_index())
