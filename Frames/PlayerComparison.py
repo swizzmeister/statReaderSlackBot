@@ -6,6 +6,12 @@ from tkinter import Listbox, ttk, messagebox
 class PlayerComparison(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
+        self.equalities = ['is equal to', 'is greater or equal to', 'is less or equal to', 'is less then', ' is greater then',  'is not']
+        self.pOptions = ['Add', 'Remove']
+        self.var_pOptions = tk.StringVar()
+        self.var_equalities = tk.StringVar()
+        self.var_pOptions.set(self.pOptions[0])
+        self.var_equalities.set(self.equalities[0])
         self.SHEET = controller.get_sheet_data()
         self.PLAYERS = {}
         self.controller = controller
@@ -19,40 +25,41 @@ class PlayerComparison(tk.Frame):
         self.avg_bool_var = tk.BooleanVar()
         self.ltg.set("False")
         self.list_box = Listbox(self, height=6, listvariable=self.saved_var)
-        self.list_box.configure(width=int((controller.winfo_width() / 3) - 8))
-        self.list_box.grid(column=0, row=4, columnspan=4, pady=3, padx=3)
+        self.list_box.configure(width=int(controller.winfo_width()/2.7))
+        self.list_box.grid(column=0, row=4, columnspan=6, pady=3, padx=3)
         self.label = ttk.Label(self, text="CSV", font=self.controller.LARGEFONT)
-        self.label.grid(columnspan=4, column=0, row=0, padx=30, pady=10)
-        button0 = ttk.Button(self, text="-",
-                             command=lambda: self.remove_selected())
-        button0.grid(row=3, column=3, padx=10, pady=10)
+        self.label.grid(columnspan=6, column=0, row=0, padx=30, pady=10)
+        #button0 = ttk.Button(self, text="-",
+                             #command=lambda: self.remove_selected())
+        #button0.grid(row=3, column=3, padx=10, pady=10)
         self.button1 = ttk.Button(self, text="Show table",
                                   command=lambda: self.show_selected_table())
         self.button1.grid(row=2, column=0, columnspan=2, rowspan=2, padx=10, pady=10)
         button2 = ttk.Button(self,
-                             text="+",
-                             command=lambda: self.save_table())
-        button2.grid(row=2, column=3,columnspan=2, padx=10, pady=10)
-
-        l = ttk.Label(self, text="Add all players where stat:")
+                             text="Ok",
+                             command=lambda: self.queryPlayers())
+        button2.grid(row=2, column=4, columnspan=2, padx=10, pady=10)
+        dropChoice = tk.OptionMenu(self, self.var_pOptions, *self.pOptions)
+        dropChoice.grid(row=1,column=0,pady=10, padx=5)
+        l = ttk.Label(self, text="all players where stat:")
         self.key = ttk.Entry(self, textvariable=self.query)
-        l.grid(row=1, column=0, padx=10, pady=10)
-        self.key.grid(row=1, column=3, columnspan=2, padx=10, pady=10)
-        l2 = ttk.Label(self, text="is equal to")
-        l2.grid(row=1, column=2, padx=10, pady=10)
+        l.grid(row=1, column=1, padx=5, pady=10)
+        self.key.grid(row=1, column=4, columnspan=2, padx=5, pady=10)
+        eDrop = tk.OptionMenu(self, self.var_equalities, *self.equalities)
+        eDrop.grid(row=1, column=3, padx=5, pady=10)
 
     def load_sheet(self, filename, sheet):
         self.SHEET = sheet
         self.label.configure(text=filename + " Player Comparison", foreground="grey")
         cols = self.SHEET.cols
         drop = tk.OptionMenu(self, self.cat_c, *cols)
-        drop.grid(column=1, row=1, padx=10, pady=10)
+        drop.grid(column=2, row=1, padx=5, pady=10)
         self.tables_saved = []
         self.saved_var.set(self.tables_saved)
         self.list_box.configure(listvariable=self.saved_var)
         self.controller.show_frame(PlayerComparison)
 
-    def save_table(self):
+    def queryPlayers(self):
         players = self.SHEET.get_col_data(self.cat_c.get())
         for num in players.keys():
             player = players.get(num)
