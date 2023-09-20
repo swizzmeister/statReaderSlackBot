@@ -6,7 +6,14 @@ from tkinter import Listbox, ttk, messagebox
 class PlayerComparison(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
-        self.reader = controller.get_reader()
+        self.equalities = ['is equal to', 'is greater or equal to', 'is less or equal to', 'is less then', 'is greater then',  'is not']
+        self.pOptions = ['Add', 'Remove']
+        self.var_pOptions = tk.StringVar()
+        self.var_equalities = tk.StringVar()
+        self.var_pOptions.set(self.pOptions[0])
+        self.var_equalities.set(self.equalities[0])
+        self.SHEET = controller.get_sheet_data()
+        self.PLAYERS = {}
         self.controller = controller
         self.cat_c = tk.StringVar()
         self.cat_c.set("Choose Category")
@@ -17,62 +24,113 @@ class PlayerComparison(tk.Frame):
         self.sum_bool_var = tk.BooleanVar()
         self.avg_bool_var = tk.BooleanVar()
         self.ltg.set("False")
-        self.list_box = Listbox(self, height=6, listvariable=self.tables_saved)
-        self.list_box.configure(width=int((controller.winfo_width() / 3) - 8))
-        self.list_box.grid(column=0, row=4, columnspan=4, pady=3, padx=3)
+        self.list_box = Listbox(self, height=6, listvariable=self.saved_var)
+        self.list_box.configure(width=int(controller.winfo_width()/3))
+        self.list_box.grid(column=0, row=5, columnspan=3, pady=3, padx=3)
         self.label = ttk.Label(self, text="CSV", font=self.controller.LARGEFONT)
-        self.label.grid(columnspan=4, column=0, row=0, padx=30, pady=10)
-        button0 = ttk.Button(self, text="-",
-                             command=lambda: self.remove_selected())
-        button0.grid(row=3, column=3, padx=10, pady=10)
+        self.label.grid(columnspan=6, column=0, row=0, padx=30, pady=10)
+        #button0 = ttk.Button(self, text="-",
+                             #command=lambda: self.remove_selected())
+        #button0.grid(row=3, column=3, padx=10, pady=10)
         self.button1 = ttk.Button(self, text="Show table",
                                   command=lambda: self.show_selected_table())
-        self.button1.grid(row=2, column=0, columnspan=2, rowspan=2, padx=10, pady=10)
+        self.button1.grid(row=3, column=2, padx=10, pady=10)
         button2 = ttk.Button(self,
-                             text="+",
-                             command=lambda: self.save_table())
-        button2.grid(row=2, column=3,columnspan=2, padx=10, pady=10)
-
-        l = ttk.Label(self, text="Add all players where stat:")
+                             text="Ok",
+                             command=lambda: self.queryPlayers())
+        button2.grid(row=2, column=2, padx=5, pady=10)
+        dropChoice = tk.OptionMenu(self, self.var_pOptions, *self.pOptions)
+        dropChoice.grid(row=1,column=0,pady=10, padx=5)
+        l = ttk.Label(self, text="all players where stat:")
         self.key = ttk.Entry(self, textvariable=self.query)
-        l.grid(row=1, column=0, padx=10, pady=10)
-        self.key.grid(row=1, column=3, columnspan=2, padx=10, pady=10)
-        l2 = ttk.Label(self, text="is equal to")
-        l2.grid(row=1, column=2, padx=10, pady=10)
+        l.grid(row=1, column=1, padx=5, pady=10)
+        self.key.grid(row=2, column=1, padx=5, pady=10)
+        eDrop = tk.OptionMenu(self, self.var_equalities, *self.equalities)
+        eDrop.grid(row=2, column=0, padx=5, pady=10)
 
-    def load_reader(self, filename, reader):
-        self.reader = reader
+    def load_sheet(self, filename, sheet):
+        self.SHEET = sheet
         self.label.configure(text=filename + " Player Comparison", foreground="grey")
-        cols = self.reader.getCatagories()
+        cols = self.SHEET.cols
         drop = tk.OptionMenu(self, self.cat_c, *cols)
-        drop.grid(column=1, row=1, padx=10, pady=10)
+        drop.grid(column=2, row=1, padx=5, pady=10)
         self.tables_saved = []
         self.saved_var.set(self.tables_saved)
         self.list_box.configure(listvariable=self.saved_var)
         self.controller.show_frame(PlayerComparison)
 
-    def save_table(self):
-        players = self.reader.get_Sorted_Leaderboard(self.cat_c.get(), True)
-        for player in players:
-            print(player[1] == float(self.query.get()))
-            if player[1] == float(self.query.get()):
-                self.tables_saved.append("Player :" + str(player[0]) + "\t\t Stat : " + str(player[1]))
-        self.saved_var.set(self.tables_saved)
-        self.list_box.configure(listvariable=self.saved_var)
-
+    def queryPlayers(self):
+        players = self.SHEET.get_col_data(self.cat_c.get())
+        if self.var_pOptions.get()=='Add':
+            for num in players.keys():
+                player = players.get(num)
+                match self.var_equalities.get():
+                    case 'is equal to':
+                        if player == self.query.get():
+                            self.PLAYERS[num] = self.SHEET.getPlayer(num).get_stats(self.SHEET.cols)
+                            self.tables_saved.append("Player : " + self.SHEET.getPlayer(num).get_stats('Name'))
+                    case 'is greater or equal to':
+                        if player >= self.query.get():
+                            self.PLAYERS[num] = self.SHEET.getPlayer(num).get_stats(self.SHEET.cols)
+                            self.tables_saved.append("Player : " + self.SHEET.getPlayer(num).get_stats('Name'))
+                    case 'is less or equal to':
+                        if player <= self.query.get():
+                            self.PLAYERS[num] = self.SHEET.getPlayer(num).get_stats(self.SHEET.cols)
+                            self.tables_saved.append("Player : " + self.SHEET.getPlayer(num).get_stats('Name'))
+                    case 'is less then':
+                        if player < self.query.get():
+                            self.PLAYERS[num] = self.SHEET.getPlayer(num).get_stats(self.SHEET.cols)
+                            self.tables_saved.append("Player : " + self.SHEET.getPlayer(num).get_stats('Name'))
+                    case 'is greater then':
+                        if player > self.query.get():
+                            self.PLAYERS[num] = self.SHEET.getPlayer(num).get_stats(self.SHEET.cols)
+                            self.tables_saved.append("Player : " + self.SHEET.getPlayer(num).get_stats('Name'))
+                    case 'is not':
+                        if player != self.query.get():
+                            self.PLAYERS[num] = self.SHEET.getPlayer(num).get_stats(self.SHEET.cols)
+                            self.tables_saved.append("Player : " + self.SHEET.getPlayer(num).get_stats('Name'))
+            self.saved_var.set(self.tables_saved)
+            self.list_box.configure(listvariable=self.saved_var)
+        elif self.var_pOptions.get()=='Remove':
+            for num in self.PLAYERS.keys():
+                player = players.get(num)
+                match self.var_equalities.get():
+                    case 'is equal to':
+                        if player == self.query.get():
+                            self.tables_saved.pop(self.tables_saved.index(self.SHEET.getPlayer(num).get_stats('Name')))
+                            self.PLAYERS.pop(num)
+                    case 'is greater or equal to':
+                        if player >= self.query.get():
+                            self.tables_saved.pop(self.tables_saved.index(self.SHEET.getPlayer(num).get_stats('Name')))
+                            self.PLAYERS.pop(num)
+                    case 'is less or equal to':
+                        if player <= self.query.get():
+                            self.tables_saved.pop(self.tables_saved.index(self.SHEET.getPlayer(num).get_stats('Name')))
+                            self.PLAYERS.pop(num)
+                    case 'is less then':
+                        if player < self.query.get():
+                            self.tables_saved.pop(self.tables_saved.index(self.SHEET.getPlayer(num).get_stats('Name')))
+                            self.PLAYERS.pop(num)
+                    case 'is greater then':
+                        if player < self.query.get():
+                            self.tables_saved.pop(self.tables_saved.index(self.SHEET.getPlayer(num).get_stats('Name')))
+                            self.PLAYERS.pop(num)
+                    case 'is not':
+                        if player != self.query.get():
+                            self.tables_saved.pop(self.tables_saved.index(self.SHEET.getPlayer(num).get_stats('Name')))
+                            self.PLAYERS.pop(num)
+            self.saved_var.set(self.tables_saved)
+            self.list_box.configure(listvariable=self.saved_var)
     def show_selected_table(self):
-        if self.get_selected_index() < 0:
-            messagebox.showwarning('Slack Client Error', 'Please select a table!')
+        if len(self.PLAYERS) < 1:
+            messagebox.showwarning('Table Display Error', 'Please add ' + str(2-len(self.PLAYERS)) + " more players")
         else:
-            table = self.tables_saved[self.get_selected_index()]
-            stats = re.split(r'\[(.*?)\]', table)
-            self.controller.data_display_tree(self.reader, stats[1], self.controller.stringBool(stats[3]))
 
-    def remove_selected(self):
-        self.tables_saved.pop(self.get_selected_index())
-        self.controller.SELECTED.pop(self.get_selected_index())
-        self.saved_var.set(self.tables_saved)
-        self.list_box.configure(listvariable=self.saved_var)
+            table = self.tables_saved[self.get_selected_index()]
+            stats = self.SHEET.get_calc_Cols()
+            selectedPlayers = list(self.PLAYERS.keys())
+            self.controller.player_compare_data_display_tree(stats, selectedPlayers)
+
 
     def get_selected_index(self):
         i = 0

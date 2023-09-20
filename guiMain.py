@@ -2,6 +2,7 @@ import slack
 import tkinter as tk
 from tkinter import filedialog, messagebox
 from tkinter import ttk
+from sheetData import SheetData
 import statInterpreter
 from Frames.PlayerComparison import PlayerComparison
 from Frames.csv_leaderboard import csvPicker
@@ -17,8 +18,7 @@ class tkinterApp(tk.Tk):
         self.ACTIVE = False
         self.ICON = "basketball.ico"
         self.SELECTED = []
-        self.READER = object
-        self.READ = object
+        self.SHEET = SheetData()
         self.CLIENT = object
         self.CHANNEL = ""
         self.FILENAME = ""
@@ -27,19 +27,21 @@ class tkinterApp(tk.Tk):
         self.AVGLINE = False
         self.title('StatSync')
         self.iconbitmap(self.ICON)
-        self.reader = None
         self.SLACKKEY = ""
         self.container = tk.Frame(self)
+        self.container.anchor = tk.CENTER
         self.container.pack()
         self.init_menu()
         self.container.grid_rowconfigure(0, weight=1)
         self.container.grid_columnconfigure(0, weight=1)
         self.frames = {}
+
         for F in (csvPicker, EmptyFrame, PlayerComparison):
             frame = F(self.container, self)
             self.frames[F] = frame
             frame.grid(row=0, column=0, sticky="nsew")
         self.show_frame(EmptyFrame)
+        self.activeFrame = EmptyFrame
 
     def init_menu(self):
         menubar = tk.Menu(self)
@@ -48,7 +50,7 @@ class tkinterApp(tk.Tk):
         function_menu = tk.Menu(menubar)
         slack_menu = tk.Menu(menubar)
         function_menu.add_command(label='Player Comparison', command=lambda: self.frames[
-            PlayerComparison].load_reader(self.FILENAME, self.READ))
+            PlayerComparison].load_sheet(self.FILENAME, self.SHEET))
         function_menu.add_command(label='Single Stat Leaderboard', command=lambda: self.show_frame(csvPicker))
         file_menu.add_command(label='Open CSV', command=lambda: self.browse_files(self, self.frames[csvPicker]))
         file_menu.add_command(label='Export to Slack', command=lambda: self.export_to_slack())
@@ -70,15 +72,16 @@ class tkinterApp(tk.Tk):
 
     def show_frame(self, cont):
         frame = self.frames[cont]
+        self.activeFrame = cont
         frame.tkraise()
         frame.grid()
 
-    def set_reader(self, reader):
-        self.reader = reader
-        self.show_frame(csvPicker)
+    def set_sheet_data(self, sheet, frame):
+        self.SHEET = sheet
+        self.show_frame(frame)
 
-    def get_reader(self):
-        return self.reader
+    def get_sheet_data(self):
+        return self.SHEET
 
     def set_slack_key(self, k):
         self.SLACKKEY = k
@@ -90,19 +93,25 @@ class tkinterApp(tk.Tk):
         self.DATE = date
 
     def export_to_slack(self):
-        if not self.ACTIVE:
-            messagebox.showwarning('Slack Client Error', 'Please connect to a Slack Workspace')
-        else:
-            try:
-                for entry in self.SELECTED:
-                    self.CLIENT.chat_postMessage(channel=self.CHANNEL,
-                                                 text=self.reader.print_LeaderBoard(stat=entry[0], ltg=entry[1],
-                                                                                    unit=entry[0], date=self.DATE,
-                                                                                    avg=entry[2], sum=entry[3]))
-            except slack.errors.SlackApiError as e:
-                messagebox.showerror('Slack Client Error', 'Table was not sent successfully!\n' + str(e))
+        if self.activeFrame == csvPicker:
+            if not self.ACTIVE:
+                messagebox.showwarning('Slack Client Error', 'Please connect to a Slack Workspace')
             else:
-                messagebox.showinfo('Slack Bot', 'Table(s) sent successfully!')
+                try:
+                    for entry in self.SELECTED:
+                        self.CLIENT.chat_postMessage(channel=self.CHANNEL,
+                                                     text=self.SHEET.print_LeaderBoard(stat=entry[0], ltg=entry[1],
+                                                                                        unit=entry[0], date=self.DATE,
+                                                                                        avg=entry[2], sum=entry[3]))
+                except slack.errors.SlackApiError as e:
+                    messagebox.showerror('Slack Client Error', 'Table was not sent successfully!\n' + str(e))
+                else:
+                    messagebox.showinfo('Slack Bot', 'Table(s) sent successfully!')
+        elif self.activeFrame == PlayerComparison:
+            if not self.ACTIVE:
+                messagebox.showwarning('Slack Client Error', 'Please connect to a Slack Workspace')
+            else:
+                None
 
     def slack_test(self):
         new_window = tk.Toplevel()
@@ -125,14 +134,13 @@ class tkinterApp(tk.Tk):
                                                       "*.csv"),
                                                      ("all files",
                                                       "*.*")))
-        reader = statInterpreter.StatInterpreter(path)
-        reader.load()
-        page.set_reader(reader)
-        self.READ = reader
+        self.SHEET.load(path)
+        self.show_frame(csvPicker)
         self.FILENAME = path.split('/')[-1]
-        target.load_reader(path.split('/')[-1], reader)
+        target.load_sheet(filename=self.FILENAME, sheet_data=self.SHEET)
 
-    def data_display_tree(self, leaderboard, stat, orderUp):
+    @staticmethod
+    def leaderboard_data_display_tree(sheet, stat, orderUp, sum, avg):
         data_win = tk.Toplevel()
         data_win.geometry('600x600')
         data_win.title(stat + ' Leaderboard')
@@ -143,14 +151,64 @@ class tkinterApp(tk.Tk):
         tv_data.heading('#0', text='Rank')
         tv_data.heading('stat', text=stat)
         i = 1
-        for player in leaderboard.get_Sorted_Leaderboard(stat, orderUp):
+        for player in sheet.get_Sorted_Leaderboard(stat, orderUp):
             tv_data.insert(parent="",
                            index=tk.END,
                            text=i,
                            values=(player[0], player[1]))
             i += 1
-
+        if sum:
+            tv_data.insert(parent="", index=tk.END,
+                           text="SUM", values=(' ', '=' + str(sheet.get_col_sum(stat))))
+        if avg:
+            tv_data.insert(parent="", index=tk.END,
+                           text="AVG", values=(' ', '=' + str(sheet.get_col_avg(stat))))
         tv_data.pack(fill=tk.BOTH, expand=True)
+
+
+    def player_compare_data_display_tree(self, cols, selectedPlayers):
+        data_win = tk.Toplevel()
+        data_win.title('Player Comparison')
+        tv_data = ttk.Treeview(data_win)
+        tv_data.configure(columns=cols)
+        i=0
+        for col in cols:
+            if i == 0:
+                tv_data.heading('#0', text="Names")
+            tv_data.heading(col, text=col)
+            tv_data.column(col, minwidth=20, width=50)
+            i += 1
+        i = 1
+        for player in self.SHEET.getPlayers(selectedPlayers):
+            stat_list = [stats for stats in player.get_stats(cols).items()]
+            pName = ""
+            i=0
+            while i < len(stat_list):
+                stat = stat_list[i]
+                if stat[0] == 'Name':
+                    pName = stat[1]
+                    stat_list.remove(stat)
+                    i -= 1
+                elif stat[0] not in cols:
+                    stat_list.remove(stat)
+                    i -= 1
+                else:
+                    if stat[1] != '-':
+                        if self.SHEET.get_col_avg(stat[0]) < float(stat[1]) :
+                            stat_list[stat_list.index(stat)] = "+"+str(round(float(stat[1]) - self.SHEET.get_col_avg(stat[0],selectedPlayers),2))
+                        else:
+                            stat_list[stat_list.index(stat)] = str(round(float(stat[1]) - self.SHEET.get_col_avg(stat[0], selectedPlayers), 2))
+                    else:
+                        stat_list[stat_list.index(stat)] = '-'
+                i+=1
+            pName = player.get_stats('Name')
+            tv_data.insert(parent="",
+                           index=tk.END,
+                           text=pName,
+                           values=stat_list)
+            i += 1
+        tv_data.pack(fill=tk.BOTH, expand=True)
+
 
     @staticmethod
     def boolString(b):

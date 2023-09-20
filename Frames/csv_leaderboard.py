@@ -8,7 +8,7 @@ class csvPicker(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
         self.controller = controller
-        self.reader = controller.get_reader()
+        self.sheet_data = controller.get_sheet_data()
         self.date = datetime.date.today().strftime("%Y/%m/%d")
         self.cat_c = tk.StringVar()
         self.date_set = tk.StringVar()
@@ -46,18 +46,18 @@ class csvPicker(tk.Frame):
 
         check = ttk.Checkbutton(self, text="Greatest to Least", variable=self.ltg)
         check.grid(column=2, row=2, padx=10, pady=3)
-        check1 = ttk.Checkbutton(self, text="Average Line", variable=self.sum_bool_var)
+        check1 = ttk.Checkbutton(self, text="Average Line", variable=self.avg_bool_var)
         check1.grid(column=2, row=3, padx=10, pady=3)
-        check2 = ttk.Checkbutton(self, text="Sum Line", variable=self.avg_bool_var)
+        check2 = ttk.Checkbutton(self, text="Sum Line", variable=self.sum_bool_var)
         check2.grid(column=2, row=4, padx=10, pady=3)
 
     def setDate(self):
         self.controller.set_date(date=self.date_set.get())
 
-    def load_reader(self, filename, reader):
-        self.reader = reader
+    def load_sheet(self, filename, sheet_data):
+        self.sheet_data = sheet_data
         self.label.configure(text=filename + " to Leaderboard", foreground="grey")
-        cols = self.reader.getCatagories()
+        cols = self.sheet_data.cols
         drop = tk.OptionMenu(self, self.cat_c, *cols)
         drop.grid(column=2, row=1, padx=10, pady=10)
         self.tables_saved = []
@@ -80,7 +80,8 @@ class csvPicker(tk.Frame):
         else:
             table = self.tables_saved[self.get_selected_index()]
             stats = re.split(r'\[(.*?)\]', table)
-            self.controller.data_display_tree(self.reader, stats[1], self.controller.stringBool(stats[3]))
+            self.controller.leaderboard_data_display_tree(self.sheet_data, stats[1], self.controller.stringBool(stats[3]),
+                                                          self.controller.stringBool(stats[5]), self.controller.stringBool(stats[7]))
 
     def remove_selected(self):
         self.tables_saved.pop(self.get_selected_index())
