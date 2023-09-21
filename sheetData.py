@@ -12,6 +12,10 @@ class SheetData(list):
         self.calcCols = []
         self.stat_blacklist = '-', '', 'Nr'
 
+    def hasData(self):
+        if len(self)>0:
+            return True
+        return False
     def load(self, path):
         with open(path) as csv_file:
             counter = 0

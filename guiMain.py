@@ -5,6 +5,7 @@ from tkinter import ttk
 from sheetData import SheetData
 from Frames.PlayerComparison import PlayerComparison
 from Frames.csv_leaderboard import csvPicker
+from Frames.dbFrames.db_add_link import Db_Add_Link
 from Frames.empty_frame import EmptyFrame
 from Frames.slackFrames.slack_add_frame import slackAddFrame
 from Frames.slackFrames.slack_test import SlackTest
@@ -35,7 +36,7 @@ class tkinterApp(tk.Tk):
         self.container.grid_columnconfigure(0, weight=1)
         self.frames = {}
 
-        for F in (csvPicker, EmptyFrame, PlayerComparison):
+        for F in (csvPicker, EmptyFrame, PlayerComparison, Db_Add_Link):
             frame = F(self.container, self)
             self.frames[F] = frame
             frame.grid(row=0, column=0, sticky="nsew")
@@ -48,14 +49,15 @@ class tkinterApp(tk.Tk):
         file_menu = tk.Menu(menubar)
         function_menu = tk.Menu(menubar)
         slack_menu = tk.Menu(menubar)
+        database_menu = tk.Menu(menubar)
         function_menu.add_command(label='Player Comparison', command=lambda: self.frames[
             PlayerComparison].load_sheet(self.FILENAME, self.SHEET))
-        function_menu.add_command(label='Single Stat Leaderboard', command=lambda: self.show_frame(csvPicker))
+        function_menu.add_command(label='Single Stat Leaderboard', command=lambda: self.csv_check(csvPicker))
         file_menu.add_command(label='Open CSV', command=lambda: self.browse_files(self, self.frames[csvPicker]))
         file_menu.add_command(label='Export to Slack', command=lambda: self.export_to_slack())
         slack_menu.add_command(label='Connect to Slack', command=lambda: self.slack_add())
         slack_menu.add_command(label='Test Connection', command=lambda: self.slack_test())
-
+        database_menu.add_command(label='Add Slack-mySQL Links', command=lambda: self.show_frame(Db_Add_Link))
         menubar.add_cascade(
             label="File",
             menu=file_menu
@@ -68,7 +70,17 @@ class tkinterApp(tk.Tk):
             label="Stat Functions",
             menu=function_menu
         )
+        menubar.add_cascade(
+            label="Database Functions",
+            menu=database_menu
+        )
 
+    def csv_check(self, frame):
+        if self.SHEET.hasData():
+            self.show_frame(frame)
+        else:
+            messagebox.showwarning('CSV Error', 'Please open a .csv')
+            self.show_frame(EmptyFrame)
     def show_frame(self, cont):
         frame = self.frames[cont]
         self.activeFrame = cont

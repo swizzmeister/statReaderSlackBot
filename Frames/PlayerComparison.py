@@ -2,6 +2,8 @@ import re
 import tkinter as tk
 from tkinter import Listbox, ttk, messagebox
 
+from Frames.empty_frame import EmptyFrame
+
 
 class PlayerComparison(tk.Frame):
     def __init__(self, parent, controller):
@@ -49,15 +51,19 @@ class PlayerComparison(tk.Frame):
         eDrop.grid(row=2, column=0, padx=5, pady=10)
 
     def load_sheet(self, filename, sheet):
-        self.SHEET = sheet
-        self.label.configure(text=filename + " Player Comparison", foreground="grey")
-        cols = self.SHEET.cols
-        drop = tk.OptionMenu(self, self.cat_c, *cols)
-        drop.grid(column=2, row=1, padx=5, pady=10)
-        self.tables_saved = []
-        self.saved_var.set(self.tables_saved)
-        self.list_box.configure(listvariable=self.saved_var)
-        self.controller.show_frame(PlayerComparison)
+        if sheet.hasData():
+            self.SHEET = sheet
+            self.label.configure(text=filename + " Player Comparison", foreground="grey")
+            cols = self.SHEET.cols
+            drop = tk.OptionMenu(self, self.cat_c, *cols)
+            drop.grid(column=2, row=1, padx=5, pady=10)
+            self.tables_saved = []
+            self.saved_var.set(self.tables_saved)
+            self.list_box.configure(listvariable=self.saved_var)
+            self.controller.show_frame(PlayerComparison)
+        else:
+            messagebox.showwarning('CSV Error', 'Please open a .csv')
+            self.controller.show_frame(EmptyFrame)
 
     def queryPlayers(self):
         players = self.SHEET.get_col_data(self.cat_c.get())
