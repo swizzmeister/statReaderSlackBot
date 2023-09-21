@@ -3,7 +3,6 @@ import tkinter as tk
 from tkinter import filedialog, messagebox
 from tkinter import ttk
 from sheetData import SheetData
-import statInterpreter
 from Frames.PlayerComparison import PlayerComparison
 from Frames.csv_leaderboard import csvPicker
 from Frames.empty_frame import EmptyFrame
