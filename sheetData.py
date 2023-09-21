@@ -28,14 +28,12 @@ class SheetData(list):
                                 colData[self.cols[i]] = max(item[0], item[2])
                         colData[self.cols[i]] = item
                         i += 1
-                    print(colData)
                     self.append(PlayerData(self.cols, colData))
                 else:
                     self.cols.append('Num')
                     for cat in row:
                         if cat:
                             self.cols.append(cat)
-                    print(self.cols)
                 counter += 1
 
     def set_cols(self, cols):
@@ -76,7 +74,6 @@ class SheetData(list):
         else:
 
             for member in self.getPlayers(players):
-                print(member)
                 if member.get_stats(stat) not in self.stat_blacklist:
                     sum += float(member.get_stats(stat))
             return round((sum / len(players)), 2)
@@ -96,7 +93,6 @@ class SheetData(list):
         out = []
         for member in self:
             if member.get_num() in nums:
-                print("Adding,", member.get_stats('Name'))
                 out.append(member)
         return out
 

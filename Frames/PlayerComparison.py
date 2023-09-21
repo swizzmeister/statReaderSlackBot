@@ -62,63 +62,66 @@ class PlayerComparison(tk.Frame):
     def queryPlayers(self):
         players = self.SHEET.get_col_data(self.cat_c.get())
         if self.var_pOptions.get()=='Add':
+            players_to_add = []
             for num in players.keys():
                 player = players.get(num)
-                match self.var_equalities.get():
-                    case 'is equal to':
-                        if player == self.query.get():
-                            self.PLAYERS[num] = self.SHEET.getPlayer(num).get_stats(self.SHEET.cols)
-                            self.tables_saved.append("Player : " + self.SHEET.getPlayer(num).get_stats('Name'))
-                    case 'is greater or equal to':
-                        if player >= self.query.get():
-                            self.PLAYERS[num] = self.SHEET.getPlayer(num).get_stats(self.SHEET.cols)
-                            self.tables_saved.append("Player : " + self.SHEET.getPlayer(num).get_stats('Name'))
-                    case 'is less or equal to':
-                        if player <= self.query.get():
-                            self.PLAYERS[num] = self.SHEET.getPlayer(num).get_stats(self.SHEET.cols)
-                            self.tables_saved.append("Player : " + self.SHEET.getPlayer(num).get_stats('Name'))
-                    case 'is less then':
-                        if player < self.query.get():
-                            self.PLAYERS[num] = self.SHEET.getPlayer(num).get_stats(self.SHEET.cols)
-                            self.tables_saved.append("Player : " + self.SHEET.getPlayer(num).get_stats('Name'))
-                    case 'is greater then':
-                        if player > self.query.get():
-                            self.PLAYERS[num] = self.SHEET.getPlayer(num).get_stats(self.SHEET.cols)
-                            self.tables_saved.append("Player : " + self.SHEET.getPlayer(num).get_stats('Name'))
-                    case 'is not':
-                        if player != self.query.get():
-                            self.PLAYERS[num] = self.SHEET.getPlayer(num).get_stats(self.SHEET.cols)
-                            self.tables_saved.append("Player : " + self.SHEET.getPlayer(num).get_stats('Name'))
+                if player != '-':
+                    match self.var_equalities.get():
+                        case 'is equal to':
+                            if player == self.query.get():
+                                players_to_add.append(num)
+                        case 'is greater or equal to':
+                            if float(player) >= float(self.query.get()):
+                                players_to_add.append(num)
+                        case float('is less or equal to'):
+                            if float(player) <= float(self.query.get()):
+                                players_to_add.append(num)
+                        case 'is less then':
+                            if float(player) < float(self.query.get()):
+                                players_to_add.append(num)
+                        case 'is greater then':
+                            if float(player) > float(self.query.get()):
+                                players_to_add.append(num)
+                        case 'is not':
+                            if player != self.query.get():
+                                players_to_add.append(num)
+            for num in players_to_add:
+                if num not in self.PLAYERS.keys():
+                    self.PLAYERS[num] = self.SHEET.getPlayer(num).get_stats(self.SHEET.cols)
+                    self.tables_saved.append("Player : " + self.SHEET.getPlayer(num).get_stats('Name'))
             self.saved_var.set(self.tables_saved)
             self.list_box.configure(listvariable=self.saved_var)
         elif self.var_pOptions.get()=='Remove':
+            players_to_remove = []
             for num in self.PLAYERS.keys():
                 player = players.get(num)
-                match self.var_equalities.get():
-                    case 'is equal to':
-                        if player == self.query.get():
-                            self.tables_saved.pop(self.tables_saved.index(self.SHEET.getPlayer(num).get_stats('Name')))
-                            self.PLAYERS.pop(num)
-                    case 'is greater or equal to':
-                        if player >= self.query.get():
-                            self.tables_saved.pop(self.tables_saved.index(self.SHEET.getPlayer(num).get_stats('Name')))
-                            self.PLAYERS.pop(num)
-                    case 'is less or equal to':
-                        if player <= self.query.get():
-                            self.tables_saved.pop(self.tables_saved.index(self.SHEET.getPlayer(num).get_stats('Name')))
-                            self.PLAYERS.pop(num)
-                    case 'is less then':
-                        if player < self.query.get():
-                            self.tables_saved.pop(self.tables_saved.index(self.SHEET.getPlayer(num).get_stats('Name')))
-                            self.PLAYERS.pop(num)
-                    case 'is greater then':
-                        if player < self.query.get():
-                            self.tables_saved.pop(self.tables_saved.index(self.SHEET.getPlayer(num).get_stats('Name')))
-                            self.PLAYERS.pop(num)
-                    case 'is not':
-                        if player != self.query.get():
-                            self.tables_saved.pop(self.tables_saved.index(self.SHEET.getPlayer(num).get_stats('Name')))
-                            self.PLAYERS.pop(num)
+                if player != '-':
+                    match self.var_equalities.get():
+                        case 'is equal to':
+                            if player == self.query.get():
+                                players_to_remove.append(num)
+                        case 'is greater or equal to':
+                            if float(player) >= float(self.query.get()):
+                                players_to_remove.append(num)
+                        case 'is less or equal to':
+                            if float(player) <= float(self.query.get()):
+                                players_to_remove.append(num)
+                        case 'is less then':
+                            if float(player) < float(self.query.get()):
+                                players_to_remove.append(num)
+                        case 'is greater then':
+                            if float(player) < float(self.query.get()):
+                                players_to_remove.append(num)
+                        case 'is not':
+                            if player != self.query.get():
+                                players_to_remove.append(num)
+                else:
+                    players_to_remove.append(num)
+            for player in players_to_remove:
+                print(self.tables_saved)
+                self.tables_saved.pop(
+                    self.tables_saved.index('Player : ' + self.SHEET.getPlayer(player).get_stats('Name')))
+                self.PLAYERS.pop(player)
             self.saved_var.set(self.tables_saved)
             self.list_box.configure(listvariable=self.saved_var)
     def show_selected_table(self):

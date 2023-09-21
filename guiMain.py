@@ -194,7 +194,7 @@ class tkinterApp(tk.Tk):
                     i -= 1
                 else:
                     if stat[1] != '-':
-                        if self.SHEET.get_col_avg(stat[0]) < float(stat[1]) :
+                        if self.SHEET.get_col_avg(stat[0], selectedPlayers) < float(stat[1]) :
                             stat_list[stat_list.index(stat)] = "+"+str(round(float(stat[1]) - self.SHEET.get_col_avg(stat[0],selectedPlayers),2))
                         else:
                             stat_list[stat_list.index(stat)] = str(round(float(stat[1]) - self.SHEET.get_col_avg(stat[0], selectedPlayers), 2))
