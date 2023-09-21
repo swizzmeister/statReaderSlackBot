@@ -100,8 +100,8 @@ class tkinterApp(tk.Tk):
                 try:
                     for entry in self.SELECTED:
                         self.CLIENT.chat_postMessage(channel=self.CHANNEL,
-                                                     text=self.SHEET.print_LeaderBoard(stat=entry[0], ltg=entry[1],
-                                                                                        unit=entry[0], date=self.DATE,
+                                                     text=self.SHEET.printLeaderboard(stat=entry[0], least_to_greatest=entry[1],
+                                                                                        unit="", date=self.DATE,
                                                                                         avg=entry[2], sum=entry[3]))
                 except slack.errors.SlackApiError as e:
                     messagebox.showerror('Slack Client Error', 'Table was not sent successfully!\n' + str(e))

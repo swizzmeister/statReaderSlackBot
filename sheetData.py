@@ -26,9 +26,9 @@ class SheetData(list):
                         if len(item) > 1 and '-' in item and self.cols[i] != 'Name':
                             if item.split('-')[0] != '':
                                 colData[self.cols[i]] = max(item[0], item[2])
-                        else:
-                            colData[self.cols[i]] = item
+                        colData[self.cols[i]] = item
                         i += 1
+                    print(colData)
                     self.append(PlayerData(self.cols, colData))
                 else:
                     self.cols.append('Num')
@@ -131,7 +131,7 @@ class SheetData(list):
         quickSort(pList, 0, len(pList) - 1)
         return pList
 
-    def get_Sorted_Leaderboard(self, stat, least_to_greatest,):
+    def get_Sorted_Leaderboard(self, stat, least_to_greatest):
         result = []
         for member in self:
             if member.get_stats(stat) in self.stat_blacklist or member.get_stats('Name') == 'Opponent':  # Check if there stat is in the blacklist or there name

@@ -10,6 +10,7 @@ class PlayerData:
 
     def get_stats(self, stat):
         if type(stat) == str:
+            print(self.colData)
             return self.colData[stat]
         elif type(stat) == list:
             out = {}
