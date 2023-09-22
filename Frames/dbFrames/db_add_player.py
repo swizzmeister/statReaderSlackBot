@@ -1,5 +1,6 @@
 import tkinter as tk
 from tkinter import Listbox, ttk, messagebox
+import mysql.connector
 import datetime
 import re
 
@@ -7,6 +8,9 @@ import re
 class Db_Add_Player(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
+        self.endpoint = "ls-0422de67b1c71a340b3cfe2c7eb96e5a06bd3503.c8l0afdxuj5t.ca-central-1.rds.amazonaws.com"
+
+
         self.tables_saved = []
         self.saved_players = []
         self.saved_var = tk.StringVar(value=self.tables_saved)
@@ -20,12 +24,12 @@ class Db_Add_Player(tk.Frame):
         rePlayerBtn.grid(row=0, column=1, pady=5, sticky='e')
         # export player button
         exportPlayerBtn = ttk.Button(self.list_lf, text="Export All Players to Database",
-                                     command=lambda: self.save_player())
+                                     command=lambda: self.export_to_database())
         exportPlayerBtn.grid(row=0, column=0, pady=5, sticky='e')
         # listbox
         self.list_box = Listbox(self.list_lf, height=6, listvariable=self.tables_saved)
         self.list_box.configure(width=int((controller.winfo_width() / 3) - 8))
-        self.list_box.grid(row=1, columnspan=3, column=0)
+        self.list_box.grid(row=1, columnspan=3, column=0,padx=10, pady=10)
 
         # Player Entry Label Frame**********
         self.lf = ttk.Labelframe(self, text='Player Entry')
@@ -58,8 +62,9 @@ class Db_Add_Player(tk.Frame):
         num = int(self.var_num.get())
         name = self.var_name.get()
         usrName = self.var_usrname.get()
-        self.tables_saved.append("[" + name + "] [" + str(num) + "] [" + usrName + "]")
-        self.saved_players.append((num, name, usrName))
+        self.tables_saved.append("" + name + " num:" + str(num) + " " + usrName + "")
+        name = name.split(' ')
+        self.saved_players.append((num, name[0], name[1], usrName))
         self.saved_var.set(self.tables_saved)
         self.list_box.configure(listvariable=self.saved_var)
 
@@ -76,3 +81,18 @@ class Db_Add_Player(tk.Frame):
                 return i
             i += 1
         return -1
+
+    def export_to_database(self):
+        mydb = mysql.connector.connect(
+            host=self.endpoint,
+            user='dbmasteruser',
+            password='SaltAndPepper14',
+            database='dbmaster'
+        )
+        sql = "INSERT INTO player (num, first_name, last_name, slackUserID) VALUES (%s, %s, %s, %s)"
+        cursor = mydb.cursor()
+        for player in self.saved_players:
+            out = (player[0], player[1], player[2], player[3])
+            print(out)
+            cursor.execute(sql, out)
+        mydb.commit()
