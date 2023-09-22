@@ -91,8 +91,14 @@ class Db_Add_Player(tk.Frame):
         )
         sql = "INSERT INTO player (num, first_name, last_name, slackUserID) VALUES (%s, %s, %s, %s)"
         cursor = mydb.cursor()
-        for player in self.saved_players:
-            out = (player[0], player[1], player[2], player[3])
-            print(out)
-            cursor.execute(sql, out)
-        mydb.commit()
+        try:
+            for player in self.saved_players:
+                out = (player[0], player[1], player[2], player[3])
+                print(out)
+                cursor.execute(sql, out)
+            mydb.commit()
+            messagebox.showinfo('Database', 'Table(s) sent successfully!')
+        except Exception:
+            messagebox.showwarning('Data Error', 'Please connect to a Slack Workspace')
+
+
