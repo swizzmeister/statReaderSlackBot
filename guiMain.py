@@ -2,9 +2,11 @@ import slack
 import tkinter as tk
 from tkinter import filedialog, messagebox
 from tkinter import ttk
+
+from Frames.statFunctionFrames.weighted_stat_output import WeightedStatOutput
 from sheetData import SheetData
-from Frames.PlayerComparison import PlayerComparison
-from Frames.csv_leaderboard import csvPicker
+from Frames.statFunctionFrames.PlayerComparison import PlayerComparison
+from Frames.statFunctionFrames.csv_leaderboard import csvPicker
 from Frames.dbFrames.db_add_player import Db_Add_Player
 from Frames.empty_frame import EmptyFrame
 from Frames.slackFrames.slack_add_frame import slackAddFrame
@@ -36,7 +38,7 @@ class tkinterApp(tk.Tk):
         self.container.grid_columnconfigure(0, weight=1)
         self.frames = {}
 
-        for F in (csvPicker, EmptyFrame, PlayerComparison, Db_Add_Player):
+        for F in (csvPicker, EmptyFrame, PlayerComparison, Db_Add_Player, WeightedStatOutput):
             frame = F(self.container, self)
             self.frames[F] = frame
             frame.grid(row=0, column=0, sticky="nsew")
@@ -53,6 +55,7 @@ class tkinterApp(tk.Tk):
         function_menu.add_command(label='Player Comparison', command=lambda: self.frames[
             PlayerComparison].load_sheet(self.FILENAME, self.SHEET))
         function_menu.add_command(label='Single Stat Leaderboard', command=lambda: self.csv_check(csvPicker))
+        function_menu.add_command(label='Weighted Stat Output', command=lambda: self.frames[WeightedStatOutput].load_sheet(self.FILENAME, self.SHEET))
         file_menu.add_command(label='Open CSV', command=lambda: self.browse_files(self, self.frames[csvPicker]))
         file_menu.add_command(label='Export to Slack', command=lambda: self.export_to_slack())
         slack_menu.add_command(label='Connect to Slack', command=lambda: self.slack_add())
@@ -139,7 +142,7 @@ class tkinterApp(tk.Tk):
         frame.pack()
 
     def browse_files(self, page, target):
-        path = filedialog.askopenfilename(initialdir="/",
+        path = filedialog.askopenfilename(initialdir="C:\\Users\\Logan\\Desktop",
                                           title="Select a csv Stat File",
                                           filetypes=(("CSV files",
                                                       "*.csv"),

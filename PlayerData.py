@@ -6,6 +6,9 @@ class PlayerData:
     def __init__(self, cols, colData):
         self.colData = colData
         self.cols = cols
+        self.OVR = float
+        self.DEF = float
+        self.OFF = float
         self.num = colData[cols[0]]
 
     def get_stats(self, stat):

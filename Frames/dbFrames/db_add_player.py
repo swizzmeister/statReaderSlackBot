@@ -99,6 +99,6 @@ class Db_Add_Player(tk.Frame):
             mydb.commit()
             messagebox.showinfo('Database', 'Table(s) sent successfully!')
         except Exception:
-            messagebox.showwarning('Data Error', 'Please connect to a Slack Workspace')
+            messagebox.showwarning('Data Error', Exception)
 
 
