@@ -1,7 +1,7 @@
 import csv
 import datetime
 
-from PlayerData import PlayerData
+from row_data import RowData
 
 
 class SheetData(list):
@@ -13,9 +13,10 @@ class SheetData(list):
         self.stat_blacklist = '-', '', 'Nr'
 
     def hasData(self):
-        if len(self)>0:
+        if len(self) > 0:
             return True
         return False
+
     def load(self, path):
         with open(path) as csv_file:
             counter = 0
@@ -32,7 +33,7 @@ class SheetData(list):
                                 colData[self.cols[i]] = max(item[0], item[2])
                         colData[self.cols[i]] = item
                         i += 1
-                    self.append(PlayerData(self.cols, colData))
+                    self.append(RowData(self.cols, colData))
                 else:
                     self.cols.append('Num')
                     for cat in row:
@@ -46,20 +47,18 @@ class SheetData(list):
     def set_calc_Cols(self, CalcCols):
         self.calcCols = CalcCols
 
-    def get_col_data(self, cols):#returns in a
+    def get_col_data(self, cols):  # returns in a
         result = {}
         for member in self:
-            result[member.get_stats('Num')] = member.get_stats(cols)
+            result[member.get_cells('Num')] = member.get_cells(cols)
         return result
-
-
 
     def get_calc_Cols(self):
         i = 0
         result = []
         while i < len(self.cols):
             try:
-                float(self[0].get_stats(self.cols[i]))
+                float(self[0].get_cells(self.cols[i]))
             except:
                 i += 1
                 continue
@@ -70,43 +69,46 @@ class SheetData(list):
 
     def get_col_avg(self, stat, players=[]):
         sum = 0
-        if len(players)==0:
+        if len(players) == 0:
             for member in self:
-                if member.get_stats(stat) not in self.stat_blacklist:
-                    sum += float(member.get_stats(stat))
+                if member.get_cells(stat) not in self.stat_blacklist:
+                    sum += float(member.get_cells(stat))
             return round((sum / len(self)), 2)
         else:
 
-            for member in self.getPlayers(players):
-                if member.get_stats(stat) not in self.stat_blacklist:
-                    sum += float(member.get_stats(stat))
+            for member in self.get_rows(players):
+                if member.get_cells(stat) not in self.stat_blacklist:
+                    sum += float(member.get_cells(stat))
             return round((sum / len(players)), 2)
+
     def get_col_sum(self, stat):
         sum = 0
         for member in self:
-            if member.get_stats(stat) not in self.stat_blacklist:
-                sum += float(member.get_stats(stat))
+            if member.get_cells(stat) not in self.stat_blacklist:
+                sum += float(member.get_cells(stat))
         return sum
 
-    def getPlayer(self, num):
-        for member in self:
-            if member.get_num() == num:
-                return member
-        return 0
-    def getPlayers(self, nums):
-        out = []
-        for member in self:
-            if member.get_num() in nums:
-                out.append(member)
-        return out
+    def get_rows(self, indices):
+        if type(indices) == str:
+            for member in self:
+                if member.get_index() == indices:
+                    return member
+            return 0
+        elif type(indices) == list:
+            out = []
+            for member in self:
+                if member.get_index() in indices:
+                    out.append(member)
+            return out
 
-    def getPlayerNums(self):
+
+    def row_indices(self):
         result = []
         for member in self:
-            result.append(member.get_num)
+            result.append(member.get_index())
         return result
 
-    def sortLeaderboard(self, pList, ltg):  # ((Name,Stat),(Name,Stat)...etc)
+    def sortLeaderboard(self, pList, ltg):  # ((index,Stat),(index,Stat)...etc)
         def partition(array, low, high):
             pivot = array[high][1]
             i = low - 1
@@ -134,10 +136,11 @@ class SheetData(list):
     def get_Sorted_Leaderboard(self, stat, least_to_greatest):
         result = []
         for member in self:
-            if member.get_stats(stat) in self.stat_blacklist or member.get_stats('Name') == 'Opponent':  # Check if there stat is in the blacklist or there name
+            if member.get_cells(stat) in self.stat_blacklist or member.get_cells(
+                    'Name') == 'Opponent':  # Check if there stat is in the blacklist or there name
                 continue  # skip that player
             else:
-                result.append((member.get_stats('Name'), float(member.get_stats(stat))))
+                result.append((member.get_cells('Num'), float(member.get_cells(stat))))
 
         return self.sortLeaderboard(result, least_to_greatest)
 
@@ -147,11 +150,13 @@ class SheetData(list):
         i = 1
         max = 0
         for player in sortedLeaderboard:
-            if len(player[0]) > max: max = len(player[0])
+            name = len(self.get_rows(player[0]).get_cells('Name'))
+            if name > max: max = name
         max += 4
         for player in sortedLeaderboard:
-            space = ' ' * (max - len(player[0]))
-            pretty_print += (">" + str(int(i)) + ". " + player[0] + space + str(player[1]) + " " + unit + "\n")
+            name = self.get_rows(player[0]).get_cells('Name')
+            space = ' ' * (max - len(name))
+            pretty_print += (">" + str(int(i)) + ". " + name + space + str(player[1]) + " " + unit + "\n")
             i += 1
         if sum:
             pretty_print += (">Sum. " + space + str(self.get_col_sum(stat)) + " " + unit + "\n")

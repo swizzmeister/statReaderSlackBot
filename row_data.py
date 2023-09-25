@@ -1,17 +1,14 @@
 import array
 
 
-class PlayerData:
+class RowData:
 
-    def __init__(self, cols, colData):
-        self.colData = colData
+    def __init__(self, cols, row_data):
+        self.colData = row_data
         self.cols = cols
-        self.OVR = float
-        self.DEF = float
-        self.OFF = float
-        self.num = colData[cols[0]]
+        self.num = row_data[cols[0]]
 
-    def get_stats(self, stat):
+    def get_cells(self, stat):
         if type(stat) == str:
             return self.colData[stat]
         elif type(stat) == list:
@@ -21,7 +18,7 @@ class PlayerData:
             return out
         return 0
 
-    def get_num(self):
+    def get_index(self):
         return self.num
 
     def __str__(self):

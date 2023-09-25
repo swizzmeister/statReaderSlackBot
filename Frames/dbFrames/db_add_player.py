@@ -8,9 +8,7 @@ import re
 class Db_Add_Player(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
-        self.endpoint = "ls-0422de67b1c71a340b3cfe2c7eb96e5a06bd3503.c8l0afdxuj5t.ca-central-1.rds.amazonaws.com"
-
-
+        self.controller = controller
         self.tables_saved = []
         self.saved_players = []
         self.saved_var = tk.StringVar(value=self.tables_saved)
@@ -84,7 +82,7 @@ class Db_Add_Player(tk.Frame):
 
     def export_to_database(self):
         mydb = mysql.connector.connect(
-            host=self.endpoint,
+            host=self.controller.endpoint,
             user='dbmasteruser',
             password='SaltAndPepper14',
             database='dbmaster'

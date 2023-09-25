@@ -93,8 +93,8 @@ class PlayerComparison(tk.Frame):
                                 players_to_add.append(num)
             for num in players_to_add:
                 if num not in self.PLAYERS.keys():
-                    self.PLAYERS[num] = self.SHEET.getPlayer(num).get_stats(self.SHEET.cols)
-                    self.tables_saved.append("Player : " + self.SHEET.getPlayer(num).get_stats('Name'))
+                    self.PLAYERS[num] = self.SHEET.get_rows(num).get_stats(self.SHEET.cols)
+                    self.tables_saved.append("Player : " + self.SHEET.get_rows(num).get_stats('Name'))
             self.saved_var.set(self.tables_saved)
             self.list_box.configure(listvariable=self.saved_var)
         elif self.var_pOptions.get()=='Remove':
@@ -126,7 +126,7 @@ class PlayerComparison(tk.Frame):
             for player in players_to_remove:
                 print(self.tables_saved)
                 self.tables_saved.pop(
-                    self.tables_saved.index('Player : ' + self.SHEET.getPlayer(player).get_stats('Name')))
+                    self.tables_saved.index('Player : ' + self.SHEET.get_rows(player).get_stats('Name')))
                 self.PLAYERS.pop(player)
             self.saved_var.set(self.tables_saved)
             self.list_box.configure(listvariable=self.saved_var)
