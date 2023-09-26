@@ -2,6 +2,8 @@ import re
 import tkinter as tk
 from tkinter import Listbox, ttk, messagebox
 
+from Frames.empty_frame import EmptyFrame
+
 
 class PlayerComparison(tk.Frame):
     def __init__(self, parent, controller):
@@ -49,15 +51,19 @@ class PlayerComparison(tk.Frame):
         eDrop.grid(row=2, column=0, padx=5, pady=10)
 
     def load_sheet(self, filename, sheet):
-        self.SHEET = sheet
-        self.label.configure(text=filename + " Player Comparison", foreground="grey")
-        cols = self.SHEET.cols
-        drop = tk.OptionMenu(self, self.cat_c, *cols)
-        drop.grid(column=2, row=1, padx=5, pady=10)
-        self.tables_saved = []
-        self.saved_var.set(self.tables_saved)
-        self.list_box.configure(listvariable=self.saved_var)
-        self.controller.show_frame(PlayerComparison)
+        if sheet.hasData():
+            self.SHEET = sheet
+            self.label.configure(text=filename + " Player Comparison", foreground="grey")
+            cols = self.SHEET.cols
+            drop = tk.OptionMenu(self, self.cat_c, *cols)
+            drop.grid(column=2, row=1, padx=5, pady=10)
+            self.tables_saved = []
+            self.saved_var.set(self.tables_saved)
+            self.list_box.configure(listvariable=self.saved_var)
+            self.controller.show_frame(PlayerComparison)
+        else:
+            messagebox.showwarning('CSV Error', 'Please open a .csv')
+            self.controller.show_frame(EmptyFrame)
 
     def queryPlayers(self):
         players = self.SHEET.get_col_data(self.cat_c.get())
@@ -87,8 +93,8 @@ class PlayerComparison(tk.Frame):
                                 players_to_add.append(num)
             for num in players_to_add:
                 if num not in self.PLAYERS.keys():
-                    self.PLAYERS[num] = self.SHEET.getPlayer(num).get_stats(self.SHEET.cols)
-                    self.tables_saved.append("Player : " + self.SHEET.getPlayer(num).get_stats('Name'))
+                    self.PLAYERS[num] = self.SHEET.get_rows(num).get_stats(self.SHEET.cols)
+                    self.tables_saved.append("Player : " + self.SHEET.get_rows(num).get_stats('Name'))
             self.saved_var.set(self.tables_saved)
             self.list_box.configure(listvariable=self.saved_var)
         elif self.var_pOptions.get()=='Remove':
@@ -120,7 +126,7 @@ class PlayerComparison(tk.Frame):
             for player in players_to_remove:
                 print(self.tables_saved)
                 self.tables_saved.pop(
-                    self.tables_saved.index('Player : ' + self.SHEET.getPlayer(player).get_stats('Name')))
+                    self.tables_saved.index('Player : ' + self.SHEET.get_rows(player).get_stats('Name')))
                 self.PLAYERS.pop(player)
             self.saved_var.set(self.tables_saved)
             self.list_box.configure(listvariable=self.saved_var)
