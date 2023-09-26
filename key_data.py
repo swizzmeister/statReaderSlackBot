@@ -32,6 +32,11 @@ class KeyData(SheetData):
                     out[m.get_cells('stat')] = m.get_cells('weights')
             return out
 
+    def statGtL(self, stat):
+        for m in self:
+            if m.get_cells('stat')==stat:
+                return int(m.get_cells('GtL'))
+
     def getPlayerStats(self, playerSheet):
         pNums = playerSheet.row_indices()
         result = {}

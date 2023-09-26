@@ -11,7 +11,7 @@ from key_data import KeyData
 
 class WeightedStatOutput(tk.Frame):
 
-    def __init__(self, parent, controller):
+    def __init__(self, parent, controller: tk.Tk):
         tk.Frame.__init__(self, parent)
         self.controller = controller
         self.sheet_data = object
@@ -75,6 +75,41 @@ class WeightedStatOutput(tk.Frame):
             messagebox.showwarning('CSV Error', 'Please open a .csv')
             self.controller.show_frame(EmptyFrame)
 
+    def getPlayerRankedOutput(self, num):
+        """
+
+        :param num: number of player
+        :return: dict[stat] = (rank, value)
+        """
+        stats = self.key_sheet_data.get_col_data('stat')
+        stats = stats.items()
+        print(stats)
+        out = {}
+        for s in stats:
+            x = self.controller.SHEET.get_Sorted_Leaderboard(s[1], self.key_sheet_data.statGtL(s[1]))
+            for i in range(0, len(x)-1):
+                if int(x[i][0]) == num:
+                    out[s[1]] = (str(i+1), str(x[i][1]))
+        return out
+
+    def pp_PlayerRankedOutput(self, num):
+        """
+
+        :param num: number of player
+        :return: pretty print of players stats
+        """
+        stat = self.getPlayerRankedOutput(num)
+        name = self.controller.SHEET.get_rows(str(num)).get_cells('Name')
+        out = name + (" <event> <date> \n"
+                      "Stat, Rank, Value\n")
+        print(stat, name)
+        for k in stat.keys():
+            stats = stat[k]
+            print(stats)
+            out += ">" + str(k) + " " + str(stats[0]) + " " + str(stats[1]) + "\n"
+        return out
+
+
     def getPlayerUserIDs(self, player_numbers: list) -> dict:
         """
 
@@ -98,3 +133,4 @@ class WeightedStatOutput(tk.Frame):
         for x in r:
             out[x[0]] = x[1]
         return out
+

@@ -133,7 +133,13 @@ class SheetData(list):
         quickSort(pList, 0, len(pList) - 1)
         return pList
 
-    def get_Sorted_Leaderboard(self, stat, least_to_greatest):
+    def get_Sorted_Leaderboard(self, stat: str, least_to_greatest: bool):
+        """
+
+        :param stat: defines the col to rank
+        :param least_to_greatest: defines which way the list will be ranked
+        :return: ((playerNum, stat), (playerNum, stat), ....)
+        """
         result = []
         for member in self:
             if member.get_cells(stat) in self.stat_blacklist or member.get_cells(

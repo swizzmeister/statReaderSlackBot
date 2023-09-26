@@ -125,16 +125,22 @@ class tkinterApp(tk.Tk):
         elif self.activeFrame == WeightedStatOutput:
             weightedFrame = self.frames.get(WeightedStatOutput)
             image_path = weightedFrame.outputImagePath
+            rank_list = weightedFrame.key_sheet_data.getPlayerOvrRank(self.SHEET)
+            userIDs = weightedFrame.getPlayerUserIDs(rank_list)
             try:
                 self.CLIENT.files_upload(
                     channels='#random',
                     initial_comment="Leaderboard from latest practice!",
                     file=image_path
                 )
+                for num in userIDs.keys():
+                    self.CLIENT.chat_postMessage(channel=userIDs[num],
+                                                 text=weightedFrame.pp_PlayerRankedOutput(num))
             except slack.errors.SlackApiError as e:
                 messagebox.showerror('Slack Client Error', 'Table was not sent successfully!\n' + str(e))
             else:
                 messagebox.showinfo('Slack Bot', 'Image of table sent successfully!')
+
 
     def slack_test(self):
         new_window = tk.Toplevel()
