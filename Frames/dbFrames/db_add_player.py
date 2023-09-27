@@ -61,8 +61,12 @@ class Db_Add_Player(tk.Frame):
         name = self.var_name.get()
         usrName = self.var_usrname.get()
         self.tables_saved.append("" + name + " num:" + str(num) + " " + usrName + "")
-        name = name.split(' ')
-        self.saved_players.append((num, name[0], name[1], usrName))
+        name.strip(' ')
+        if ' ' in name:
+            name = name.split(' ')
+            self.saved_players.append((num, name[0], name[1], usrName))
+        else:
+            self.saved_players.append((num, name, "", usrName))
         self.saved_var.set(self.tables_saved)
         self.list_box.configure(listvariable=self.saved_var)
 

@@ -141,7 +141,7 @@ class tkinterApp(tk.Tk):
             userIDs = weightedFrame.getPlayerUserIDs(rank_list)
             try:
                 self.CLIENT.files_upload(
-                    channels='#random',
+                    channels=self.CHANNEL,
                     initial_comment="Leaderboard from latest practice!",
                     file=image_path
                 )
