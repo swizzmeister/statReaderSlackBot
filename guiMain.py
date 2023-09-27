@@ -47,6 +47,9 @@ class tkinterApp(tk.Tk):
         self.activeFrame = EmptyFrame
 
     def init_menu(self):
+        """
+        Initilizes Menu for main tkinter root
+        """
         menubar = tk.Menu(self)
         self.configure(menu=menubar, width=300, height=300)
         file_menu = tk.Menu(menubar)
@@ -81,6 +84,7 @@ class tkinterApp(tk.Tk):
         )
 
     def csv_check(self, frame: tk.Frame):
+
         if self.SHEET.hasData():
             self.show_frame(frame)
         else:
@@ -88,10 +92,15 @@ class tkinterApp(tk.Tk):
             self.show_frame(EmptyFrame)
 
     def show_frame(self, cont: tk.Frame):
+        """
+
+        :param cont: Frame inwhich the root is swithcing to
+        """
         frame = self.frames[cont]
         self.activeFrame = cont
         frame.tkraise()
         frame.grid()
+
     def get_sheet_data(self):
         return self.SHEET
 
@@ -102,6 +111,7 @@ class tkinterApp(tk.Tk):
         self.DATE = date
 
     def export_to_slack(self):
+        # Export as CSV Picker-------------
         if self.activeFrame == csvPicker:
             if not self.ACTIVE:
                 messagebox.showwarning('Slack Client Error', 'Please connect to a Slack Workspace')
@@ -111,17 +121,19 @@ class tkinterApp(tk.Tk):
                         self.CLIENT.chat_postMessage(channel=self.CHANNEL,
                                                      text=self.SHEET.printLeaderboard(stat=entry[0],
                                                                                       least_to_greatest=entry[1],
-                                                                                        unit="", date=self.DATE,
-                                                                                        avg=entry[2], sum=entry[3]))
+                                                                                      unit="", date=self.DATE,
+                                                                                      avg=entry[2], sum=entry[3]))
                 except slack.errors.SlackApiError as e:
                     messagebox.showerror('Slack Client Error', 'Table was not sent successfully!\n' + str(e))
                 else:
                     messagebox.showinfo('Slack Bot', 'Table(s) sent successfully!')
+        # Export as Player comparison--------------------------------
         elif self.activeFrame == PlayerComparison:
             if not self.ACTIVE:
                 messagebox.showwarning('Slack Client Error', 'Please connect to a Slack Workspace')
             else:
                 None
+        # Export as weighted output---------------------------------------
         elif self.activeFrame == WeightedStatOutput:
             weightedFrame = self.frames.get(WeightedStatOutput)
             image_path = weightedFrame.outputImagePath
@@ -140,7 +152,6 @@ class tkinterApp(tk.Tk):
                 messagebox.showerror('Slack Client Error', 'Table was not sent successfully!\n' + str(e))
             else:
                 messagebox.showinfo('Slack Bot', 'Image of table sent successfully!')
-
 
     def slack_test(self):
         new_window = tk.Toplevel()
@@ -202,13 +213,17 @@ class tkinterApp(tk.Tk):
                            text="AVG", values=(' ', '=' + str(sheet.get_col_avg(stat))))
         tv_data.pack(fill=tk.BOTH, expand=True)
 
-
     def player_compare_data_display_tree(self, cols, selectedPlayers):
+        """
+
+        :param cols: Columns you wish to compare
+        :param selectedPlayers: Players you wish to compare
+        """
         data_win = tk.Toplevel()
         data_win.title('Player Comparison')
         tv_data = ttk.Treeview(data_win)
         tv_data.configure(columns=cols)
-        i=0
+        i = 0
         for col in cols:
             if i == 0:
                 tv_data.heading('#0', text="Names")
@@ -219,7 +234,7 @@ class tkinterApp(tk.Tk):
         for player in self.SHEET.get_rows(selectedPlayers):
             stat_list = [stats for stats in player.get_stats(cols).items()]
             pName = ""
-            i=0
+            i = 0
             while i < len(stat_list):
                 stat = stat_list[i]
                 if stat[0] == 'Name':
@@ -231,13 +246,15 @@ class tkinterApp(tk.Tk):
                     i -= 1
                 else:
                     if stat[1] != '-':
-                        if self.SHEET.get_col_avg(stat[0], selectedPlayers) < float(stat[1]) :
-                            stat_list[stat_list.index(stat)] = "+"+str(round(float(stat[1]) - self.SHEET.get_col_avg(stat[0],selectedPlayers),2))
+                        if self.SHEET.get_col_avg(stat[0], selectedPlayers) < float(stat[1]):
+                            stat_list[stat_list.index(stat)] = "+" + str(
+                                round(float(stat[1]) - self.SHEET.get_col_avg(stat[0], selectedPlayers), 2))
                         else:
-                            stat_list[stat_list.index(stat)] = str(round(float(stat[1]) - self.SHEET.get_col_avg(stat[0], selectedPlayers), 2))
+                            stat_list[stat_list.index(stat)] = str(
+                                round(float(stat[1]) - self.SHEET.get_col_avg(stat[0], selectedPlayers), 2))
                     else:
                         stat_list[stat_list.index(stat)] = '-'
-                i+=1
+                i += 1
             pName = player.get_stats('Name')
             tv_data.insert(parent="",
                            index=tk.END,
@@ -245,7 +262,6 @@ class tkinterApp(tk.Tk):
                            values=stat_list)
             i += 1
         tv_data.pack(fill=tk.BOTH, expand=True)
-
 
     @staticmethod
     def boolString(b):

@@ -66,4 +66,6 @@ class KeyData(SheetData):
                     if float(playerstats[numList[i]]['Ovr']) <= float(ovr):
                         numList.insert(i, num)
                         break
+                numList.append(num)
+
         return numList
