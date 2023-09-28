@@ -48,8 +48,8 @@ class KeyData(SheetData):
             defStats = []
             for stat in self.get_def_stats():
                 defStats.append(float(player.get_cells(stat.get_cells('stat'))) * float(self.get_weights(stat.get_cells('stat'))))
-            Off = round(sum(offStats)/len(offStats), 2)
-            Def = round(sum(defStats)/len(offStats), 2)
+            Off = round(sum(offStats), 2)
+            Def = round(sum(defStats), 2)
             result[num] = {'Ovr': Off + Def,'Off': Off,'Def': Def}
         return result
 
