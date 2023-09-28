@@ -62,10 +62,10 @@ class KeyData(SheetData):
             if len(numList) == 0:
                 numList.append(num)
             elif len(numList)>0:
+                found = 0
                 for i in range(0, len(numList)):
                     if float(playerstats[numList[i]]['Ovr']) <= float(ovr):
-                        numList.insert(i, num)
+                        numList.insert(i, num); found = 1
                         break
-                numList.append(num)
-
+                if not found: numList.append(num)
         return numList
