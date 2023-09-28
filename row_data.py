@@ -8,7 +8,12 @@ class RowData:
         self.cols = cols
         self.num = row_data[cols[0]]
 
-    def get_cells(self, stat):
+    def get_cells(self, stat: list | str) -> dict | str:
+        """
+        Will return cell data
+        :param stat: stat(s) to be returned
+        :return: data from chosen col(s)
+        """
         if type(stat) == str:
             return self.colData[stat]
         elif type(stat) == list:
@@ -18,12 +23,13 @@ class RowData:
             return out
         return 0
 
-    def get_index(self):
+    def get_index(self) -> str:
+        """
+
+        :return: first item of row
+        """
         return self.num
 
     def __str__(self):
-        out = "*/----/*\n"
-        for c in self.cols:
-            out += str(c) + ": " + self.colData[c] + "\n"
-        out += "*/----/*"
+        out = "Name: " + self.colData['Name']
         return out

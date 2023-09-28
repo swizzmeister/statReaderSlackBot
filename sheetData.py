@@ -5,7 +5,9 @@ from row_data import RowData
 
 
 class SheetData(list):
-
+    """
+        Stores a list of RowData and can perform different methods upon said rowData
+    """
     def __init__(self):
         super().__init__(self)
         self.cols = []
@@ -18,12 +20,16 @@ class SheetData(list):
         return False
 
     def load(self, path):
+        """
+            Loads a csv file of a specific format into class
+        :param path:
+        """
         with open(path) as csv_file:
             counter = 0
             csv_reader = csv.reader(csv_file, delimiter=',')
             for row in csv_reader:
                 if counter > 0:
-                    if row[0] == '':
+                    if row[0] == '':  # Make sure the 0,0 is Empty to verify format
                         continue
                     i = 0
                     colData = {}
@@ -33,9 +39,9 @@ class SheetData(list):
                                 colData[self.cols[i]] = max(item[0], item[2])
                         colData[self.cols[i]] = item
                         i += 1
-                    self.append(RowData(self.cols, colData))
+                    self.append(RowData(self.cols, colData))  #For each row save the data in another object called RowData
                 else:
-                    self.cols.append('Num')
+                    self.cols.append('Num') # On the first row read every column label and save them to local object
                     for cat in row:
                         if cat:
                             self.cols.append(cat)
@@ -100,7 +106,6 @@ class SheetData(list):
                 if member.get_index() in indices:
                     out.append(member)
             return out
-
 
     def row_indices(self):
         result = []
