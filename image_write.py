@@ -6,8 +6,8 @@ import random
 
 class ImageWrite:
 
-    def __init__(self, key_data):
-        event_date = "Practice 2023/09/23"
+    def __init__(self, key_data, heading):
+        event_date = heading
         img = Image.open('img/ntemplate.png')
         im = ImageDraw(img)
         offset = 262

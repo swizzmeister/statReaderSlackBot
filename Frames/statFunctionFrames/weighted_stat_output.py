@@ -11,7 +11,7 @@ from key_data import KeyData
 
 class WeightedStatOutput(tk.Frame):
 
-    def __init__(self, parent, controller: tk.Tk):
+    def __init__(self, parent: tk.Frame, controller: tk.Tk):
         tk.Frame.__init__(self, parent)
         self.controller = controller
         self.sheet_data = object
@@ -21,6 +21,10 @@ class WeightedStatOutput(tk.Frame):
         self.image_path = ""
         self.label = ttk.Label(self, text="Error", font=controller.LARGEFONT)
         self.label.pack(side=tk.TOP)
+        # heading
+        self.current_heading = "vs{Team} {YY/MM/DD/}"
+        self.headingSet = tk.StringVar()
+        self.headingSet.set(self.current_heading)
         # Key Entry
         list_lf = ttk.Labelframe(self, text='Stat Key')
         list_lf.pack()
@@ -28,9 +32,16 @@ class WeightedStatOutput(tk.Frame):
         btn_key = ttk.Button(list_lf, text="Get key csv", command=lambda: self.get_key())
         btn_key.grid(column=0, row=0, padx=10, pady=10)
         self.lbl_key.grid(column=1, row=0, padx=10, pady=10)
+        headingBtn = ttk.Button(list_lf,
+                                text="Change Heading",
+                                command=lambda: self.set_heading())
+        headingEntry = ttk.Entry(list_lf, textvariable=self.headingSet)
+        headingEntry.grid(row=1, column=1, padx=10, pady=10)
+        headingBtn.grid(row=1, column=0, padx=10, pady=10)
         # Players to contact
         self.list = []
-
+    def set_heading(self):
+        self.current_heading = self.headingSet.get()
     def get_key(self):
         path = filedialog.askopenfilename(initialdir='C:\\Users\\Logan\\Desktop',
                                           title="Select a csv Stat File",
@@ -51,7 +62,7 @@ class WeightedStatOutput(tk.Frame):
         for num in rank_list:
             key_data.append((round(stat_list[num]["Ovr"]), self.controller.SHEET.get_rows(num).get_cells('Name'),
                              round(stat_list[num]["Def"]), round(stat_list[num]["Off"])))
-        i = ImageWrite(key_data)
+        i = ImageWrite(key_data, self.current_heading)
         print(i.get_img_path())
         image = Image.open(i.get_img_path())
         image = image.resize((250, 300))
@@ -100,7 +111,7 @@ class WeightedStatOutput(tk.Frame):
         """
         stat = self.getPlayerRankedOutput(num)
         name = self.controller.SHEET.get_rows(str(num)).get_cells('Name')
-        out = name + (" <event> <date> \n"
+        out = name + (self.current_heading + " \n"
                       "Stat, Rank, Value\n")
         print(stat, name)
         for k in stat.keys():

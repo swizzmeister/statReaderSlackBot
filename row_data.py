@@ -15,6 +15,7 @@ class RowData:
         :return: data from chosen col(s)
         """
         if type(stat) == str:
+            print(stat, self.colData)
             return self.colData[stat]
         elif type(stat) == list:
             out = {}

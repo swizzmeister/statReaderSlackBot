@@ -8,6 +8,7 @@ from sheetData import SheetData
 from Frames.statFunctionFrames.PlayerComparison import PlayerComparison
 from Frames.statFunctionFrames.csv_leaderboard import csvPicker
 from Frames.dbFrames.db_add_player import Db_Add_Player
+from Frames.dbFrames.dbaddevent import DbAddEvent
 from Frames.empty_frame import EmptyFrame
 from Frames.slackFrames.slack_add_frame import slackAddFrame
 from Frames.slackFrames.slack_test import SlackTest
@@ -39,7 +40,7 @@ class tkinterApp(tk.Tk):
         self.container.grid_columnconfigure(0, weight=1)
         self.frames = {}
 
-        for F in (csvPicker, EmptyFrame, PlayerComparison, Db_Add_Player, WeightedStatOutput):
+        for F in (csvPicker, EmptyFrame, PlayerComparison, Db_Add_Player, WeightedStatOutput, DbAddEvent):
             frame = F(self.container, self)
             self.frames[F] = frame
             frame.grid(row=0, column=0, sticky="nsew")
@@ -66,6 +67,7 @@ class tkinterApp(tk.Tk):
         slack_menu.add_command(label='Connect to Slack', command=lambda: self.slack_add())
         slack_menu.add_command(label='Test Connection', command=lambda: self.slack_test())
         database_menu.add_command(label='Base Player Entry', command=lambda: self.show_frame(Db_Add_Player))
+        database_menu.add_command(label='Base Game Entry', command=lambda: self.frames[DbAddEvent].load_sheet(self.FILENAME, self.SHEET))
         menubar.add_cascade(
             label="File",
             menu=file_menu
@@ -139,10 +141,11 @@ class tkinterApp(tk.Tk):
             image_path = weightedFrame.outputImagePath
             rank_list = weightedFrame.key_sheet_data.getPlayerOvrRank(self.SHEET)
             userIDs = weightedFrame.getPlayerUserIDs(rank_list)
+            heading = weightedFrame.current_heading
             try:
                 self.CLIENT.files_upload(
                     channels=self.CHANNEL,
-                    initial_comment="Leaderboard from latest practice!",
+                    initial_comment="Leaderboard from " + heading + ":",
                     file=image_path
                 )
                 for num in userIDs.keys():
