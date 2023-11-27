@@ -61,6 +61,7 @@ class DbAddEvent(tk.Frame):
 
     def load_sheet(self, filename, sheet_data):
         if sheet_data.hasData():
+
             self.sheet_data = sheet_data
             self.label.configure(text=filename + " to Database", foreground="grey")
             self.controller.show_frame(DbAddEvent)

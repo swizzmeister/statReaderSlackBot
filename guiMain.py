@@ -8,6 +8,7 @@ from sheetData import SheetData
 from Frames.statFunctionFrames.PlayerComparison import PlayerComparison
 from Frames.statFunctionFrames.csv_leaderboard import csvPicker
 from Frames.dbFrames.db_add_player import Db_Add_Player
+from Frames.dbFrames.db_add_stats import Db_Add_Stats
 from Frames.dbFrames.dbaddevent import DbAddEvent
 from Frames.empty_frame import EmptyFrame
 from Frames.slackFrames.slack_add_frame import slackAddFrame
@@ -40,7 +41,7 @@ class tkinterApp(tk.Tk):
         self.container.grid_columnconfigure(0, weight=1)
         self.frames = {}
 
-        for F in (csvPicker, EmptyFrame, PlayerComparison, Db_Add_Player, WeightedStatOutput, DbAddEvent):
+        for F in (csvPicker, EmptyFrame, PlayerComparison, Db_Add_Player, WeightedStatOutput, DbAddEvent, Db_Add_Stats):
             frame = F(self.container, self)
             self.frames[F] = frame
             frame.grid(row=0, column=0, sticky="nsew")
@@ -67,7 +68,8 @@ class tkinterApp(tk.Tk):
         slack_menu.add_command(label='Connect to Slack', command=lambda: self.slack_add())
         slack_menu.add_command(label='Test Connection', command=lambda: self.slack_test())
         database_menu.add_command(label='Base Player Entry', command=lambda: self.show_frame(Db_Add_Player))
-        database_menu.add_command(label='Base Game Entry', command=lambda: self.frames[DbAddEvent].load_sheet(self.FILENAME, self.SHEET))
+        database_menu.add_command(label='Base Event Entry', command=lambda: self.frames[DbAddEvent].load_sheet(self.FILENAME, self.SHEET))
+        database_menu.add_command(label='Base Stat Entry', command=lambda: self.frames[Db_Add_Stats].load_sheet(self.FILENAME, self.SHEET))
         menubar.add_cascade(
             label="File",
             menu=file_menu
